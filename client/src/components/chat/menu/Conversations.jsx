@@ -15,7 +15,7 @@ const StyleDivider = styled(Divider)`
   opacity: 0.6;
 `;
 
-const Conversations = () => {
+const Conversations = ({text}) => {
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
@@ -27,14 +27,17 @@ const Conversations = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-        setUsers(res.data);
+        const filteredData = res.data.filter((user) =>
+          user.username.toLowerCase().includes(text.toLowerCase())
+        );
+        setUsers(filteredData);
       } catch (err) {
         console.error("Error fetching users", err);
       }
     };
 
     fetchData();
-  }, []);
+  }, [text]);
 
   return (
     <Component>

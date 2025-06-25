@@ -3,6 +3,9 @@ import Profile_icon from '../../../assets/Profile_icon.png';
 
 import {useContext} from 'react'
 import UserContext from '../../../context/UserContext';
+import { AccountTree } from '@mui/icons-material';
+
+import { setConversation } from '../../../service/api';
 
 const Component = styled(Box)`
   display: flex;
@@ -22,11 +25,18 @@ const Image = styled('img')({
 
 const Conversation = ({ user }) => {
 
-  const {setPerson}=useContext(UserContext);
+  const {setPerson , account}=useContext(UserContext);
 
-  const getUser=()=>{
-    setPerson(user);
+  const getUser = async () => {
+  if (!account?._id || !user?._id) {
+    console.error('Account or user ID missing:', { account, user });
+    return;
   }
+
+  setPerson(user);
+  await setConversation({ senderId: account._id, receiverId: user._id });
+};
+
 
   return (
     <Component onClick={ getUser}>

@@ -1,3 +1,5 @@
+//import { newConversation } from '../controller/conversation-controller.js';
+
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
@@ -5,7 +7,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
-
+const { newConversation } = require('../controller/conversation-controller.js');
 require('dotenv').config();
 
 
@@ -80,7 +82,7 @@ router.get('/other-users', verifyToken, async (req, res) => {
 router.get('/user', verifyToken, async (req, res) => {
   try {
     const user = await User.findById(req.userId).select('username profilePicture about');
-    res.json(user);
+    res.json({ username: user.username, _id: user._id, profilePicture: user.profilePicture, about: user.about });
   } catch (err) {
     res.status(500).json({ message: 'Error retrieving user' });
   }
@@ -115,7 +117,7 @@ router.post('/login', async (req, res) => {
     if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    res.json({ token, username: user.username });
+    res.json({ token, username: user.username,userId: user._id });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -138,6 +140,7 @@ router.put('/update-profile', verifyToken, async (req, res) => {
   }
 });
 
+router.post('/conversation/add',newConversation);
 
 module.exports = router;
 

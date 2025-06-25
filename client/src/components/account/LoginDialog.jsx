@@ -28,7 +28,10 @@ const LoginDialog = ({ onSwitch, onLoginSuccess }) => {
       const res = await axios.post('http://localhost:5000/api/auth/login', form);
       setMessage('Login successful!');
       localStorage.setItem('token', res.data.token);
-      onLoginSuccess(res.data.username); // notify parent
+      onLoginSuccess({
+      username: res.data.username,
+      _id: res.data.userId   // ✅ pass _id to parent
+    }) // notify parent
     } catch (err) {
       setMessage(err.response?.data?.message || 'Login failed');
     }

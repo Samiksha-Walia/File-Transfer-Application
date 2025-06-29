@@ -8,6 +8,7 @@ import ChatBox from "./chat/ChatBox";
 
 const StyledDialog = styled(Box)`
     display: flex;
+    height:'100%';
 `;
 const LeftComponent = styled(Box)`
     min-width: 450px;`;
@@ -15,8 +16,9 @@ const LeftComponent = styled(Box)`
 const RightComponent = styled(Box)`
     width: 75%;
     min-width: 300px;
-    height: 100%;
-    border-left: 1px solid rgba(0,0,0,0.14);`;
+    height:100%;
+    border-left: 1px solid rgba(0,0,0,0.14);`
+
 const dialogStyle = {
     height: '95%',
     width: '100%',
@@ -25,19 +27,21 @@ const dialogStyle = {
     maxHeight: '100%',
     borderRadius: 0,
     boxShadow: 'none',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    
 };
 
 
 const ChatDialog = ({ onLogout }) => {
 
-  const {person} =useContext(UserContext);
+  const { account, setAccount, person, setPerson, socket } = useContext(UserContext);
 
   return (
     <Dialog
       open={true}
       PaperProps={{ sx: dialogStyle }}
       hideBackdrop="true"
+      
     >
       <StyledDialog>
       <LeftComponent >

@@ -1,6 +1,7 @@
 import { Box, Typography, styled } from "@mui/material";
 import { Search, MoreVert } from "@mui/icons-material";
-import { useEffect, useState } from "react";
+import {useContext, useState, useEffect} from 'react';
+import UserContext from "../../../context/UserContext";
 import Profile_icon from '../../../assets/Profile_icon.png';
 import axios from "axios";
 
@@ -41,6 +42,8 @@ const RightContainer = styled(Box)`
 const ChatHeader = ({person}) => {
 
       const [users, setUsers] = useState([]);
+
+      const {activeUsers} = useContext(UserContext);
     
       useEffect(() => {
         const fetchData = async () => {
@@ -64,7 +67,10 @@ const ChatHeader = ({person}) => {
             <Image src={person?.profilePicture || Profile_icon} alt="dp"/>
             <Box>
                 <Name>{person.username}</Name>
-                <Status>Online Status</Status>
+                <Status>
+                  {activeUsers.find(user => user._id === person._id) ? 'Online' : 'Offline'}
+                </Status>
+
             </Box>
             <RightContainer>
                 <Search />

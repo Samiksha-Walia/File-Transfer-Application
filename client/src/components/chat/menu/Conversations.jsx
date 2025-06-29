@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import React, { useContext, useState, useEffect } from 'react';
 import { Box,Divider , styled } from "@mui/material";
 import Conversation from "./Conversation";
+import UserContext from '../../../context/UserContext'; 
 import axios from "axios";
 
 const Component = styled(Box)`
@@ -17,6 +18,10 @@ const StyleDivider = styled(Divider)`
 
 const Conversations = ({text}) => {
   const [users, setUsers] = useState([]);
+ //onst [activeUsers, setActiveUsers] = useState([]);
+
+  const { account, setAccount, person, setPerson, socket, activeUsers, setActiveUsers } = useContext(UserContext);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -38,6 +43,21 @@ const Conversations = ({text}) => {
 
     fetchData();
   }, [text]);
+
+  useEffect(() => {
+    if (account?._id) {
+        socket.current.emit('addUsers', account);
+    }
+
+    socket.current.on('getUsers', (users) => {
+        setActiveUsers(users);
+    });
+
+    return () => {
+        socket.current.off('getUsers');
+    };
+}, [account]);
+
 
   return (
     <Component>

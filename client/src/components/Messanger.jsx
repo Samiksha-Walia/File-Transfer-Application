@@ -20,7 +20,7 @@ const Header = styled(AppBar)`
     box-shadow:none;`
 
 const Messenger = () => {
-  const { account, setAccount } = useContext(UserContext);
+  const { account, setAccount, person, setPerson, socket } = useContext(UserContext);
   const isAuthenticated = !!account._id;
   
    // ✅ Check if token exists on page load (auto-login)

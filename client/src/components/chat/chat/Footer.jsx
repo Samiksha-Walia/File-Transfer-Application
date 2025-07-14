@@ -2,6 +2,8 @@ import { useState,useEffect} from "react";
 
 import {Box,Typography,InputBase ,styled} from "@mui/material";
 import { EmojiEmotionsOutlined,AttachFile, Mic} from "@mui/icons-material";
+import SendIcon from '@mui/icons-material/Send';
+
 import { uploadFile } from "../../../service/api";
 
 const Container = styled(Box)`
@@ -106,10 +108,14 @@ const Footer = ({sendText,setValue,value,file,setFile, setImage}) => {
 
             <InputField placeholder='Type a message'
             onChange={(e)=>setValue(e.target.value)}
-            onKeyPress={(e)=> sendText(e)}
+            onKeyDown={(e)=> sendText(e)}
             value={value}/>
         </Search>
         <Mic/>
+        <SendIcon 
+            onClick={(e)=>sendText(e)}
+            style={{
+                cursor:'pointer' }}/>
     </Container>
   );
 };

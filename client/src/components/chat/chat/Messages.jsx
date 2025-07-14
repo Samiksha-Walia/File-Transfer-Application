@@ -1,6 +1,7 @@
 import { useContext , useEffect, useState,useRef} from 'react';
-import {Box, styled} from '@mui/material';
+import {Box, styled, Typography} from '@mui/material';
 import Background from '../../../assets/Background.png';
+import { formatDateSeparator } from '../../../utils/common-utils';
 
 import { UserProvider }from '../../../context/UserContext';
 import UserContext from '../../../context/UserContext';
@@ -69,8 +70,12 @@ const Messages=({conversation})=>
     }, [incomingMessage, conversation]);
 
     const sendText =async(e)=>{
-        const code = e.keyCode || e.which;
-        if(code===13){
+        const isEnterKey = e.keyCode === 13 || e.which === 13;
+        const isClick = e.type === 'click';
+
+        if (!isEnterKey && !isClick) return;
+        
+        
             let message = {};
             if(!file){
                 message = {
@@ -87,7 +92,7 @@ const Messages=({conversation})=>
                     conversationId:conversation._id,
                     type:'file',
                     text: image
-                }
+                };
             }
 
             socket.current.emit('sendMessage', message);
@@ -98,22 +103,59 @@ const Messages=({conversation})=>
             setFile('');
             setImage('');
             setNewMessageFlag(prev=> !prev)
-        }
+        
 
-    }
+    };
+
+    const DateSeparator = ({ label }) => (
+        <Box sx={{ display: 'flex', alignItems: 'center', my: 2 }}>
+            <Box sx={{ flex: 1, height: '1px', backgroundColor: '#ccc' }} />
+            <Typography
+            sx={{
+                padding: '0 12px',
+                fontSize: 12,
+                color: '#666',
+                whiteSpace: 'nowrap'
+            }}
+            >
+            {label}
+            </Typography>
+            <Box sx={{ flex: 1, height: '1px', backgroundColor: '#ccc' }} />
+        </Box>
+        );
+
 
     return(
         <Wrapper>
             <Component>
-                {
-                    messages && messages.map(message=>(
-                        <Container ref={scrollRef}>
-                            <Message message={message}/>
+                {messages &&
+                    messages.reduce((acc, message, index) => {
+                    const messageDate = new Date(message.createdAt);
+                    const prevDate = index > 0 ? new Date(messages[index - 1].createdAt) : null;
+
+                    const isNewDate =
+                        !prevDate || messageDate.toDateString() !== prevDate.toDateString();
+
+                    if (isNewDate) {
+                        acc.push(
+                        <DateSeparator
+                            key={`date-${message._id}`}
+                            label={formatDateSeparator(message.createdAt)}
+                        />
+                        );
+                    }
+
+                    acc.push(
+                        <Container key={message._id} ref={scrollRef}>
+                        <Message message={message} />
                         </Container>
-                        
-                    ))
+                    );
+
+                    return acc;
+                    }, [])
                 }
             </Component>
+
             <Footer 
                 sendText={sendText}
                 setValue={setValue}

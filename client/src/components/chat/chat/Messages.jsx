@@ -108,21 +108,23 @@ const Messages=({conversation})=>
     };
 
     const DateSeparator = ({ label }) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', my: 2 }}>
-            <Box sx={{ flex: 1, height: '1px', backgroundColor: '#ccc' }} />
+        <Box sx={{ textAlign: 'center', my: 2 }}>
             <Typography
             sx={{
-                padding: '0 12px',
                 fontSize: 12,
                 color: '#666',
-                whiteSpace: 'nowrap'
+                backgroundColor: '#e0e0e0',
+                display: 'inline-block',
+                padding: '4px 12px',
+                borderRadius: 12,
+                fontWeight: 500
             }}
             >
             {label}
             </Typography>
-            <Box sx={{ flex: 1, height: '1px', backgroundColor: '#ccc' }} />
         </Box>
         );
+
 
 
     return(

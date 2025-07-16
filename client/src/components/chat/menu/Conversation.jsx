@@ -13,6 +13,13 @@ const Component = styled(Box)`
   height: 45px;
   padding: 13px 0;
   cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    background-color: #f1f1f1;
+    transform: scale(1.02);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
 `;
 
 const Image = styled('img')({
@@ -22,6 +29,7 @@ const Image = styled('img')({
   padding: '0 14px',
   marginRight: '20px',
   objectFit: 'cover',
+  
 });
 
 const Container = styled(Box)`
@@ -41,6 +49,21 @@ const Text = styled(Typography)`
     color: rgba(0, 0, 0, 0.6);
     font-size: 14px;
 `;
+
+const HoverableUsername = styled(Typography)`
+  display: inline-block;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    color: #333;
+    transform: scale(1.05);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+  }
+`;
+
+
 
 const Conversation = ({ user }) => {
 
@@ -77,7 +100,7 @@ const Conversation = ({ user }) => {
       </Box>
       <Box style={{ width:'100%'}}>
         <Container>
-         <Typography >{user.username}</Typography>
+         <HoverableUsername >{user.username}</HoverableUsername>
          {
             message?.text && 
                 <Timestamp>{formatDate(message?.timestamp)}</Timestamp>

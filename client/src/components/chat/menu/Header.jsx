@@ -17,20 +17,33 @@ const Component=styled(Box)`
 
 const Wrapper=styled(Box)`
     margin-left: auto;
-    & > * {
-        margin-left: 20px;
-        padding: 8px;
-        color: #000;
-    };
-    & :first-child {
-        font-size: 22px;
-        margin-right: 8px;}`
+     height: 36px;
+    width: 36px; 
+    border-radius: 50%;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+      transform: scale(1.05);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+    display: flex;
+    justify-content: center;
+    align-items: center;`
 
 const Image=styled('img')`
     height: 36px;
     width: 36px;    
     border-radius: 50%;
-    object-fit: cover;`
+    object-fit: cover;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+      transform: scale(1.05);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }`
+
+
 
 
 
@@ -64,8 +77,9 @@ const Header = ({ onLogout }) => {
          <Image src={user.profilePicture || Profile_icon} alt="Profile_icon" onClick={()=>toggleDrawer()}/>
 
         <Wrapper>
-            <MessageIcon  />
+          
             <HeaderMenu setOpenDrawer={setOpenDrawer} onLogout={onLogout}/>
+
         </Wrapper>
         </Component>
         <InfoDrawer open={openDrawer} setOpen={setOpenDrawer}/>

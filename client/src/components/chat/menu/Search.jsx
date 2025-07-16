@@ -17,6 +17,13 @@ const Wrapper=styled(Box)`
     width: 100%;
     border-radius: 10px;
     border: 1px solid #F2F2F2;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+      transform: scale(1.05);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
 `;
 
 const Icon=styled(Box)`

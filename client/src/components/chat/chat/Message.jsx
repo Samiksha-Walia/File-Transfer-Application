@@ -1,6 +1,8 @@
 import { useContext, useState} from 'react';
 
-import { Box, Button, Typography, LinearProgress,styled} from '@mui/material';
+import { Box,IconButton , Button,CircularProgress, Typography, LinearProgress,styled} from '@mui/material';
+
+
 import GetAppIcon from '@mui/icons-material/GetApp';
 import axios from 'axios';
 import { saveAs } from 'file-saver';
@@ -80,7 +82,29 @@ const DownloadButton = styled('a')`
 `;
 
 
-
+const CircularProgressWithLabel = ({ value }) => {
+  return (
+    <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+      <CircularProgress variant="determinate" value={value} />
+      <Box
+        sx={{
+          top: 0,
+          left: 0,
+          bottom: 0,
+          right: 0,
+          position: 'absolute',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Typography variant="caption" component="div" color="text.secondary">
+          {`${Math.round(value)}%`}
+        </Typography>
+      </Box>
+    </Box>
+  );
+};
 
 
 export const Message=({message})=>{
@@ -132,16 +156,16 @@ const handleFileUpload = async (file,setProgress) => {
 };
 
 
-const downloadFile = async (fileUrl, fileName, setProgress) => {
+const downloadFile = async (fileUrl, fileName, setProgress, setDownloaded) => {
     try {
         const response = await axios.get(fileUrl, {
             responseType: 'blob',
             onDownloadProgress: (progressEvent) => {
-                const percentCompleted = Math.round(
-                    (progressEvent.loaded * 100) / progressEvent.total
-                );
+                const total = progressEvent.total || progressEvent.target?.getResponseHeader('content-length') || 1;
+                const percentCompleted = Math.round((progressEvent.loaded * 100) / total);
                 setProgress(percentCompleted);
-            }
+                },
+
         });
 
         const blob = new Blob([response.data]);
@@ -203,7 +227,7 @@ const ImageMessage = ({ message }) => {
     
 
     const handleDownload = () => {
-        downloadFile(message.text, fileName, setProgress);
+        downloadFile(message.text, fileName, setProgress, setIsDownloaded);
         setIsDownloaded(true);
     };
 
@@ -245,6 +269,12 @@ const ImageMessage = ({ message }) => {
                     >
                         <GetAppIcon fontSize="small" sx={{ color: '#333' }} />
                     </Box>
+                    {/* Progress Overlay */}
+                    {progress > 0 && progress < 100 && (
+                        <Box sx={{ position: 'absolute', top: 50, right: 8 }}>
+                        <CircularProgressWithLabel value={progress} />
+                        </Box>
+                    )}
                 </>
             ) : (
                 <Box 
@@ -283,7 +313,11 @@ const ImageMessage = ({ message }) => {
                     >
                         {isDownloaded ? "Downloaded" : "Download"}
                     </DownloadButton>
-
+                    {progress > 0 && progress < 100 && (
+                        <Box sx={{ mt: 1, alignSelf: 'center' }}>
+                        <CircularProgressWithLabel value={progress} />
+                        </Box>
+                    )}
                 </Box>
             )}
 

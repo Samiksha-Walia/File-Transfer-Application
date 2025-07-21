@@ -1,5 +1,7 @@
 import { useContext , useEffect, useState,useRef} from 'react';
-import {Box, styled, Typography} from '@mui/material';
+import { useSelector } from 'react-redux';
+import { format } from 'timeago.js';
+import {CircularProgress, Box, styled, Typography} from '@mui/material';
 import Background from '../../../assets/Background.png';
 import { formatDateSeparator } from '../../../utils/common-utils';
 
@@ -7,6 +9,9 @@ import { UserProvider }from '../../../context/UserContext';
 import UserContext from '../../../context/UserContext';
 
 import { getMessages, newMessage } from '../../../service/api';
+
+import UploadMessageBubble from './UploadMessageBubble';
+import { v4 as uuidv4 } from 'uuid';
 
 
 import Footer from "./Footer";
@@ -28,6 +33,9 @@ const Container = styled(Box)`
     padding:1px 80px;
 `;
 
+
+
+
 const Messages=({conversation})=>
 {
     const { account, setAccount, person, setPerson, socket, newMessageFlag,setNewMessageFlag } = useContext(UserContext);
@@ -38,7 +46,14 @@ const Messages=({conversation})=>
     const [image, setImage] = useState('');
     const [incomingMessage, setIncomingMessage] = useState(null);
 
+    const [uploadingFiles, setUploadingFiles] = useState([]);
+
     const scrollRef = useRef();
+
+    const handleFileUpload = (file) => {
+    const id = uuidv4();
+    setUploadingFiles(prev => [...prev, { id, file }]);
+    };
 
     useEffect(() => {
         socket.current.on('getMessage', data => {
@@ -59,9 +74,23 @@ const Messages=({conversation})=>
     conversation._id && getMessageDetails();
 }, [person._id, conversation._id,newMessageFlag]);
 
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+        scrollRef.current?.scrollIntoView({ behavior: 'auto' });
+        }, 100);
+        return () => clearTimeout(timeout);
+    }, [messages, uploadingFiles]);
+    
+    useEffect(() => {
+    if (messages.length > 0) {
+        scrollRef.current?.scrollIntoView({ behavior: 'auto' }); // not smooth here
+    }
+    }, [messages]);
+
+
     useEffect(()=>{
-        scrollRef.current?.scrollIntoView({ transition:'smooth'})
-    },[messages])
+        scrollRef.current?.scrollIntoView({ behavior:'smooth'})
+    },[messages,uploadingFiles])
 
     useEffect(() => {
         incomingMessage && conversation?.members?.includes(incomingMessage.senderId) && 
@@ -128,36 +157,47 @@ const Messages=({conversation})=>
 
 
     return(
+         <>
         <Wrapper>
             <Component>
-                {messages &&
-                    messages.reduce((acc, message, index) => {
-                    const messageDate = new Date(message.createdAt);
-                    const prevDate = index > 0 ? new Date(messages[index - 1].createdAt) : null;
-
-                    const isNewDate =
-                        !prevDate || messageDate.toDateString() !== prevDate.toDateString();
-
-                    if (isNewDate) {
-                        acc.push(
-                        <DateSeparator
-                            key={`date-${message._id}`}
-                            label={formatDateSeparator(message.createdAt)}
-                        />
-                        );
-                    }
-
-                    acc.push(
-                        <Container key={message._id} ref={scrollRef}>
+                {messages && messages.map((message, index) => (
+                    <Container key={index}>
                         <Message message={message} />
-                        </Container>
-                    );
+                    </Container>
+                    ))}
 
-                    return acc;
-                    }, [])
-                }
+                    {uploadingFiles.map(({ id, file }) => (
+                    <Container key={id}>
+                        <UploadMessageBubble
+                        file={file}
+                        onSuccess={async (res) => {
+                            const message = {
+                                senderId: account._id,
+                                receiverId: person._id,
+                                conversationId: conversation._id,
+                                type: 'file',
+                                text: res.fileUrl // change based on your upload response
+                            };
+                            socket.current.emit('sendMessage', message);
+                            await newMessage(message);
+                            newMessage(message);
+                            setNewMessageFlag(prev => !prev);
+                            setUploadingFiles(prev => prev.filter(f => f.id !== id));
+                        }}
+                        onCancel={() => {
+                            setUploadingFiles(prev => prev.filter(f => f.id !== id));
+                        }}
+                        />
+                        <Box display="flex" alignItems="center" justifyContent="center" mt={1}>
+                            <CircularProgress size={20} thickness={5} />
+                            <Typography ml={1} variant="caption" color="text.secondary">Uploading…</Typography>
+                        </Box>
+                    </Container>
+                    ))}
+                 <div ref={scrollRef} />
             </Component>
-
+           
+            </Wrapper>
             <Footer 
                 sendText={sendText}
                 setValue={setValue}
@@ -166,8 +206,9 @@ const Messages=({conversation})=>
                 setFile={setFile}
                 setImage={setImage}
                 style={{marginBottom:0}}
+                onFileSelect={handleFileUpload}
             />
-        </Wrapper>
+         </>
     )
 }
 

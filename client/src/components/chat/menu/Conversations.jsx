@@ -1,20 +1,22 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useTheme } from 'react';
 import { Box,Divider , styled } from "@mui/material";
 import Conversation from "./Conversation";
 import UserContext from '../../../context/UserContext'; 
 import axios from "axios";
 
-const Component = styled(Box)`
-  height:81vh;
-  overflow-y: overlay;
-  `;
+const Component = styled(Box)(({ theme }) => ({
+  height: '90vh',
+  overflowY: 'overlay',
+  backgroundColor: theme.palette.background.default,
+  color: theme.palette.text.primary,
+}));
 
+const StyleDivider = styled(Divider)(({ theme }) => ({
+  margin: '0 0 0 70px',
+  backgroundColor: theme.palette.divider,
+  opacity: 0.6,
+}));
 
-const StyleDivider = styled(Divider)`
-  margin: 0 0 0 70px;
-  background-color: #e9edef;
-  opacity: 0.6;
-`;
 
 const Conversations = ({text}) => {
   const [users, setUsers] = useState([]);

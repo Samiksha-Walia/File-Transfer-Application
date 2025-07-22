@@ -8,10 +8,13 @@ import ChatBox from "./chat/ChatBox";
 
 const StyledDialog = styled(Box)`
     display: flex;
-    height:'100%';
+    height:900px;
 `;
 const LeftComponent = styled(Box)`
-    min-width: 450px;`;
+    min-width: 450px;
+    height:900px;
+    display: 'flex';
+   `;
 
 const RightComponent = styled(Box)`
     width: 75%;
@@ -28,11 +31,12 @@ const dialogStyle = {
     borderRadius: 0,
     boxShadow: 'none',
     overflow: 'hidden',
+    display: 'flex',
     
 };
 
 
-const ChatDialog = ({ onLogout }) => {
+const ChatDialog = ({ onLogout, currentTheme, toggleTheme }) => {
 
   const { account, setAccount, person, setPerson, socket } = useContext(UserContext);
 
@@ -45,7 +49,9 @@ const ChatDialog = ({ onLogout }) => {
     >
       <StyledDialog>
       <LeftComponent >
-        <Menu onLogout={onLogout}/>
+        <Menu onLogout={onLogout} 
+          currentTheme={currentTheme}
+          toggleTheme={toggleTheme}/>
       </LeftComponent>
 
       <RightComponent >

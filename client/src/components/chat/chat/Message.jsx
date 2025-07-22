@@ -13,26 +13,26 @@ import UserContext from '../../../context/UserContext';
 
 import { fileIcons, getFileType } from '../../../utils/fileIconUtils'; 
 
-const Own =styled(Box)`
-    background:rgba(202, 202, 202, 0.46);
-    max-width:60%;
-    margin-left:auto;
-    padding:5px;
-    width: fit-content;
-    display:flex;
-    border-radius: 10px;
-    word-break: break-word;
-`;
+const Own = styled(Box)(({ theme }) => ({
+    background: theme.palette.mode === 'dark' ? 'rgba(200, 200, 200, 0.2)' : 'rgba(202, 202, 202, 0.46)',
+    maxWidth: '60%',
+    marginLeft: 'auto',
+    padding: 5,
+    width: 'fit-content',
+    display: 'flex',
+    borderRadius: 10,
+    wordBreak: 'break-word',
+}));
 
-const Wrapper =styled(Box)`
-    background:#FFFFFF;
-    max-width:60%;
-    padding:5px;
-    width: fit-content;
-    display:flex;
-    border-radius: 10px;
-    word-break: break-word;
-`;
+const Wrapper = styled(Box)(({ theme }) => ({
+    background: theme.palette.background.paper,
+    maxWidth: '60%',
+    padding: 5,
+    width: 'fit-content',
+    display: 'flex',
+    borderRadius: 10,
+    wordBreak: 'break-word',
+}));
 
 const Text =styled(Typography)`
     font-size:14px;
@@ -41,20 +41,21 @@ const Text =styled(Typography)`
 
 const Time =styled(Typography)`
     font-size:10px;
-    color: #919191;
+    color: theme.palette.text.secondary,
     margin-top: 6px;
     word-break: keep-all;
     margin-top: auto;
 `;
 
-const PdfWrapper = styled(Box)`
-    display: flex;
-    flex-direction: column;
-    background-color: #f0f0f0;
-    border-radius: 8px;
-    padding: 10px;
-    width: 250px;
-`;
+const PdfWrapper = styled(Box)(({ theme }) => ({
+    display: 'flex',
+    flexDirection: 'column',
+    backgroundColor: theme.palette.action.hover,
+    borderRadius: 8,
+    padding: 10,
+    width: 250,
+}));
+
 
 const PdfHeader = styled(Box)`
     display: flex;

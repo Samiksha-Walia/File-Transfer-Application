@@ -6,20 +6,33 @@ import LoginDialog from "./account/LoginDialog";
 import AuthDialog from "./account/AuthDialog";
 import ChatDialog from "./chat/ChatDialog";
 import UserContext from "../context/UserContext";
+import Settings from './chat/menu/settings';
+import Header from './chat/menu/Header';
+
 
 import axios from 'axios';
 
 
-const Component=styled(Box)`
-    height:100vh;
-    background-color:#DCDCDC;`
+const Component = styled(Box)`
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #DCDCDC;
+  display: flex;
+  flex-direction: column;
+`;
 
-const Header = styled(AppBar)`
+
+const StyledAppBar = styled(AppBar)`
     background-color:#000000;
     height: 220px;
     box-shadow:none;`
 
-const Messenger = () => {
+const Messenger = ({ currentTheme, toggleTheme }) => {
+  const [openSettingsDrawer, setOpenSettingsDrawer] = useState(false);
+
   const { account, setAccount, person, setPerson, socket } = useContext(UserContext);
   const isAuthenticated = !!account._id;
   
@@ -58,13 +71,16 @@ const Messenger = () => {
   };
   return (
     <Component>
-    <Header >
-        <Toolbar>
-            
-        </Toolbar>
-    </Header>
+    <Header
+      currentTheme={currentTheme}
+      toggleTheme={toggleTheme}
+    />
+    <StyledAppBar>
+      <Toolbar />
+    </StyledAppBar>
+
     {isAuthenticated ? (
-    <ChatDialog onLogout={handleLogout}/>
+    <ChatDialog onLogout={handleLogout} currentTheme={currentTheme} toggleTheme={toggleTheme}/>
     ) : (
         <AuthDialog onLoginSuccess={handleLoginSuccess} />
       )}

@@ -1,17 +1,18 @@
-import { Box, Typography, styled } from "@mui/material";
+import { Box, Typography, styled, useTheme  } from "@mui/material";
 import { Search, MoreVert } from "@mui/icons-material";
 import {useContext, useState, useEffect} from 'react';
 import UserContext from "../../../context/UserContext";
 import Profile_icon from '../../../assets/Profile_icon.png';
 import axios from "axios";
 
-const Header = styled(Box)`
-  height: 44px;
-  background-color: #ededed;
-  display: flex;
-  align-items: center;
-  padding: 8px 16px;
-`;
+const Header = styled(Box)(({ theme }) => ({
+  height: 44,
+  backgroundColor: theme.palette.background.default,
+  display: 'flex',
+  alignItems: 'center',
+  padding: '8px 16px',
+  borderBottom: `1px solid ${theme.palette.divider}`,
+}));
 
 const Image = styled('img')({
   width: 40,
@@ -20,30 +21,36 @@ const Image = styled('img')({
   objectFit: 'cover',
 });
 
-const Name= styled(Typography)`
-  margin-left: 12px !important; ;
-`;
+const Name = styled(Typography)(({ theme }) => ({
+  marginLeft: 12,
+  fontWeight: 500,
+  color: theme.palette.text.primary,
+}));
 
-const Status= styled(Typography)`
-  margin-left: 12px !important; 
-  font-size: 12px;
-  color: rgba(0, 0, 0, 0.6);
-`;
+const Status = styled(Typography)(({ theme }) => ({
+  marginLeft: 12,
+  fontSize: 12,
+  color: theme.palette.text.secondary,
+}));
 
-const RightContainer = styled(Box)`
-  margin-left: auto;
-  & > svg {
-    padding: 8px;
-    font-size: 24px;
-    color: #000;
-  }
-`;
+const RightContainer = styled(Box)(({ theme }) => ({
+  marginLeft: 'auto',
+  display: 'flex',
+  alignItems: 'center',
+  '& > svg': {
+    padding: 8,
+    fontSize: 24,
+    color: theme.palette.text.primary,
+  },
+}));
 
 const ChatHeader = ({person}) => {
 
       const [users, setUsers] = useState([]);
 
       const {activeUsers} = useContext(UserContext);
+
+      const theme = useTheme();
     
       useEffect(() => {
         const fetchData = async () => {

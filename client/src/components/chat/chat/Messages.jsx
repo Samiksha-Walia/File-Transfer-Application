@@ -17,17 +17,17 @@ import { v4 as uuidv4 } from 'uuid';
 import Footer from "./Footer";
 import Message from './Message';
 
-const Wrapper = styled(Box)`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background-color: #f5f5f5;
-`;
+const Wrapper = styled(Box)(({ theme }) => ({
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    backgroundColor: theme.palette.background.default,
+}));
 
-const Component = styled(Box)`
-    height: 80vh;
-    overflow-y: scroll;
-`;
+const Component = styled(Box)(({ theme }) => ({
+    height: '80vh',
+    overflowY: 'scroll',
+}));
 
 const Container = styled(Box)`
     padding:1px 80px;
@@ -189,9 +189,9 @@ const Messages=({conversation})=>
                         }}
                         />
                         <Box display="flex" alignItems="center" justifyContent="center" mt={1}>
-                            <CircularProgress size={20} thickness={5} />
-                            <Typography ml={1} variant="caption" color="text.secondary">Uploading…</Typography>
-                        </Box>
+                    <CircularProgress size={20} thickness={5} />
+                    <Typography ml={1} variant="caption" color="text.secondary">Uploading…</Typography>
+                    </Box>
                     </Container>
                     ))}
                  <div ref={scrollRef} />

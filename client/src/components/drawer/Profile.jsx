@@ -45,31 +45,32 @@ const EditOverlay = styled(Box)`
   justify-content: center;
 `;
 
-const BoxWrapper = styled(Box)`
-  background-color: #ffffff;
-  padding: 12px 30px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+const BoxWrapper = styled(Box)(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  padding: '12px 30px',
+  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
+  color: theme.palette.text.primary,
 
-  & :first-of-type {
-    font-size: 13px;
-    color: #878787;
-    font-weight: 600;
-  }
+  '& :first-of-type': {
+    fontSize: 13,
+    color: theme.palette.text.secondary,
+    fontWeight: 600,
+  },
 
-  & :last-of-type {
-    margin: 14px 0;
-    color: #4a4a4a;
-  }
-`;
+  '& :last-of-type': {
+    margin: '14px 0',
+    color: theme.palette.text.primary,
+  },
+}));
 
-const DescriptionContainer = styled(Box)`
-  padding: 15px 20px 28px 30px;
+const DescriptionContainer = styled(Box)(({ theme }) => ({
+  padding: '15px 20px 28px 30px',
 
-  & p {
-    font-size: 13px;
-    color: #8696a0;
-  }
-`;
+  '& p': {
+    fontSize: 13,
+    color: theme.palette.text.secondary,
+  },
+}));
 
 const FileInput = styled(Input)`
   display: none;

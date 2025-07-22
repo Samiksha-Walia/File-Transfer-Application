@@ -7,13 +7,16 @@ import Search from './Search';
 import HeaderMenu from './HeaderMenu';
 import Conversations from './Conversations';
 
-const Menu =({ onLogout })=> {
+const Menu =({ onLogout, currentTheme, toggleTheme })=> {
 
     const [text,setText]= useState('');
 
     return(
         <Box>
-            <Header onLogout={onLogout} />
+            <Header 
+                onLogout={onLogout}
+                currentTheme={currentTheme}
+                toggleTheme={toggleTheme} />
             <Search setText={setText} />
             <Conversations text={text}/>
         </Box>

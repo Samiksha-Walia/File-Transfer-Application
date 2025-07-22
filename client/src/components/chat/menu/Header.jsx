@@ -6,14 +6,17 @@ import{Chat as MessageIcon} from '@mui/icons-material';
 import Profile_icon from '../../../assets/Profile_icon.png';
 import HeaderMenu from './HeaderMenu';
 import InfoDrawer from '../../drawer/InfoDrawer';
+import SettingsDrawer from '../../drawer/SettingDrawer';
 import axios from 'axios';
 
-const Component=styled(Box)`
-    height: 44px;
-    background-color:#ededed;
-    padding: 8px 16px;
-    display: flex; 
-    align-items: center;`
+const Component = styled(Box)(({ themeMode }) => ({
+  height: '60px',
+  backgroundColor: themeMode === 'dark' ? '#2b2b2b' : '#ededed',
+  padding: '8px 16px',
+  display: 'flex',
+  alignItems: 'center',
+  borderBottom: themeMode === 'dark' ? '1px solid #444' : 'none',
+}));
 
 const Wrapper=styled(Box)`
     margin-left: auto;
@@ -47,10 +50,12 @@ const Image=styled('img')`
 
 
 
-const Header = ({ onLogout }) => {
+const Header = ({ onLogout, currentTheme, toggleTheme }) => {
     const [openDrawer, setOpenDrawer] = useState(false);
     const [user, setUser] = useState({ profilePicture: '' });
+    const [openSettingsDrawer, setOpenSettingsDrawer] = useState(false);
 
+    
     const toggleDrawer = () => {
         setOpenDrawer(true);}
         
@@ -73,16 +78,22 @@ const Header = ({ onLogout }) => {
   }, []);
     return(
         <>
-        <Component>
+        <Component themeMode={currentTheme}>
          <Image src={user.profilePicture || Profile_icon} alt="Profile_icon" onClick={()=>toggleDrawer()}/>
 
         <Wrapper>
           
-            <HeaderMenu setOpenDrawer={setOpenDrawer} onLogout={onLogout}/>
+            <HeaderMenu setOpenDrawer={setOpenDrawer} onLogout={onLogout} setOpenSettings={setOpenSettingsDrawer}/>
 
         </Wrapper>
         </Component>
         <InfoDrawer open={openDrawer} setOpen={setOpenDrawer}/>
+        <SettingsDrawer
+          open={openSettingsDrawer}
+          setOpen={setOpenSettingsDrawer}
+          currentTheme={currentTheme}      // only if you're managing theme
+          toggleTheme={toggleTheme}        // only if you're managing theme
+        />
         </>
     )
 }

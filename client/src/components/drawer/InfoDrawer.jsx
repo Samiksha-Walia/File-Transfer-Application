@@ -3,19 +3,21 @@ import { ArrowBack, Height } from '@mui/icons-material';
 import {Drawer, Typography,Box,styled} from '@mui/material';
 import Profile from './Profile';
 
-const Header = styled(Box)`
-    background-color: #000000;
-    height:195px;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    padding: 0 16px;
-    gap: 20px;
-`
-const Component = styled(Box)`
-    background-color: #ededed;
-    height:85%;
-    `
+const Header = styled(Box)(({ theme }) => ({
+  backgroundColor:' #e2e2e2ff',
+  height: 195,
+  color: theme.palette.primary.contrastText,
+  display: 'flex',
+  alignItems: 'center',
+  padding: '0 16px',
+  gap: 20,
+}));
+
+const Component = styled(Box)(({ theme }) => ({
+  backgroundColor: theme.palette.background.default,
+  height: '85%',
+}));
+
 
 const drawerStyle = {
     left:20,
@@ -23,6 +25,7 @@ const drawerStyle = {
     height: '95%',
     width: '26.5%',
     boxShadow: 'none',
+    backgroundColor: 'background.default', 
 }
 
 const InfoDrawer=({open, setOpen})=> {

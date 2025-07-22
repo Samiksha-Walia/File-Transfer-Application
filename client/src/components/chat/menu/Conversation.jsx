@@ -8,26 +8,27 @@ import { AccountTree } from '@mui/icons-material';
 import { setConversation, getConversation} from '../../../service/api';
 import { formatDate } from '../../../utils/common-utils';
 
-const Component = styled(Box)`
-  display: flex;
-  height: 45px;
-  padding: 13px 0;
-  cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+const Component = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  height: '70px',
+  padding: '10px 0',
+  cursor: 'pointer',
+  transition: 'background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease',
+  backgroundColor: theme.palette.background.paper,
 
-  &:hover {
-    background-color: #f1f1f1;
-    transform: scale(1.02);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  }
-`;
+  '&:hover': {
+    backgroundColor: theme.palette.action.hover,
+    transform: 'scale(1.02)',
+    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
+  },
+}));
 
 const Image = styled('img')({
-  width: '50px',
-  height: '50px',
+  width: '80px',
+  height: '53px',
   borderRadius: '50%',
   padding: '0 14px',
-  marginRight: '20px',
+  marginRight: '15px',
   objectFit: 'cover',
   
 });
@@ -36,32 +37,33 @@ const Container = styled(Box)`
     display: flex;
 `;
 
-const Timestamp = styled(Typography)`
-    font-size: 12px;
-    margin-left: auto;
-    color: #00000099;
-    margin-right: 20px;
-`;
+const Timestamp = styled(Typography)(({ theme }) => ({
+  fontSize: 12,
+  marginLeft: 'auto',
+  marginRight: 20,
+  color: theme.palette.text.secondary,
+}));
 
 
-const Text = styled(Typography)`
-    display: block;
-    color: rgba(0, 0, 0, 0.6);
-    font-size: 14px;
-`;
+const Text = styled(Typography)(({ theme }) => ({
+  display: 'block',
+  fontSize: 14,
+  color: theme.palette.text.secondary,
+}));
 
-const HoverableUsername = styled(Typography)`
-  display: inline-block;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  cursor: pointer;
+const HoverableUsername = styled(Typography)(({ theme }) => ({
+  display: 'inline-block',
+  fontWeight: 500,
+  color: theme.palette.text.primary,
+  transition: 'all 0.2s ease',
+  cursor: 'pointer',
 
-  &:hover {
-    color: #333;
-    transform: scale(1.05);
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-  }
-`;
+  '&:hover': {
+    color: theme.palette.primary.main,
+    transform: 'scale(1.05)',
+    textShadow: '1px 1px 2px rgba(0,0,0,0.2)',
+  },
+}));
 
 
 

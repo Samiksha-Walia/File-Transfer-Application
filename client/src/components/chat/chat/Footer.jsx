@@ -1,36 +1,40 @@
 import { useState,useEffect} from "react";
 
-import {Box,Typography,InputBase ,styled} from "@mui/material";
+import {Box,Typography,InputBase ,styled,IconButton  } from "@mui/material";
 import { EmojiEmotionsOutlined,AttachFile, Mic} from "@mui/icons-material";
 import SendIcon from '@mui/icons-material/Send';
 
 import { uploadFile } from "../../../service/api";
 
-const Container = styled(Box)`
-    height:55px;
-    background: #ededed;
-    display: flex;
-    width:100%;
-    align-items: center;
-    padding: 0 15px;
-    & > * {
-    margin: 5px;
-    color: #919191; }
-`;
+const Container = styled(Box)(({ theme }) => ({
+    height: 55,
+    background: theme.palette.mode === 'dark' ? '#2a2f32' : '#ededed',
+    display: 'flex',
+    width: '100%',
+    alignItems: 'center',
+    padding: '0 15px',
+    '& > *': {
+        margin: 5,
+        color: theme.palette.text.secondary,
+    }
+}));
 
-const Search =styled(Box)`
-    background-color: #FFFFFF; 
-    border-radius: 18px;
-    width: calc(94% - 100px);
-`;
+const Search = styled(Box)(({ theme }) => ({
+    backgroundColor: theme.palette.background.paper,
+    borderRadius: 18,
+    width: 'calc(94% - 100px)',
+}));
 
-const InputField = styled(InputBase)`
-    width: 100%;
-    padding:20px;
-    height: 20px;
-    padding-left: 25px;
-    font-size: 14px;
-`;
+
+const InputField = styled(InputBase)(({ theme }) => ({
+    width: '100%',
+    padding: 20,
+    height: 20,
+    paddingLeft: 25,
+    fontSize: 14,
+    color: theme.palette.text.primary,
+}));
+
 const ClipIcon = styled(AttachFile)`
     transform: rotate(40deg);
 `;
@@ -68,10 +72,19 @@ const Footer = ({sendText,setValue,value,file,setFile, setImage}) => {
 
   return (
     <Container>
-        <EmojiEmotionsOutlined/>
+        <IconButton 
+            sx={{ color: (theme) => theme.palette.text.secondary }}
+            
+            >
+            <EmojiEmotionsOutlined/>
+        </IconButton>
+       
         <label htmlFor="fileInput">
-            <ClipIcon/>
+             <IconButton sx={{ color: (theme) => theme.palette.text.secondary }}>
+                <ClipIcon/>
+            </IconButton>
         </label>
+        
         <input 
             type="file"
             id="fileInput"
@@ -97,7 +110,8 @@ const Footer = ({sendText,setValue,value,file,setFile, setImage}) => {
                                 sx={{
                                     height: '100%',
                                     width: `${progress}%`,
-                                    backgroundColor: '#128c7e',
+                                    backgroundColor: (theme) =>
+                                        theme.palette.mode === 'dark' ? '#25d366' : '#128c7e',
                                     transition: 'width 0.3s ease'
                                 }}
                             />
@@ -111,11 +125,15 @@ const Footer = ({sendText,setValue,value,file,setFile, setImage}) => {
             onKeyDown={(e)=> sendText(e)}
             value={value}/>
         </Search>
-        <Mic/>
-        <SendIcon 
-            onClick={(e)=>sendText(e)}
-            style={{
-                cursor:'pointer' }}/>
+        <IconButton sx={{ color: (theme) => theme.palette.text.secondary }}>
+            <Mic />
+        </IconButton>
+        <IconButton 
+            sx={{ color: (theme) => theme.palette.text.secondary }}
+            onClick={(e) => sendText(e)}
+            >
+            <SendIcon />
+        </IconButton>
     </Container>
   );
 };

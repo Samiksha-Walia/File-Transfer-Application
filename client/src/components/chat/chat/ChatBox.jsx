@@ -23,14 +23,17 @@ const ChatBox=()=> {
         getConversationDetails();
     },[person._id]);
 
-    return(
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Box sx={{ flex: '0 0 auto' }}>
+        <ChatHeader person={person} />
+      </Box>
+      <Box sx={{ flex: '1 1 auto', overflowY: 'auto' }}>
+        <Messages person={person} conversation={conversation} />
+      </Box>
+    </Box>
+  );
+};
 
-        <ChatHeader person={person}/>
-        <Messages person={person} conversation={conversation}/>
-      
-        </Box>
-    )
-}
 
 export default ChatBox;

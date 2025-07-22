@@ -1,4 +1,6 @@
-import { useContext , useEffect, useState,useRef} from 'react';
+import { useContext, useEffect, useState, useRef } from 'react';
+import { useTheme } from '@mui/material/styles';
+
 import { useSelector } from 'react-redux';
 import { format } from 'timeago.js';
 import {CircularProgress, Box, styled, Typography} from '@mui/material';
@@ -136,35 +138,48 @@ const Messages=({conversation})=>
 
     };
 
-    const DateSeparator = ({ label }) => (
-        <Box sx={{ textAlign: 'center', my: 2 }}>
-            <Typography
-            sx={{
-                fontSize: 12,
-                color: '#666',
-                backgroundColor: '#e0e0e0',
-                display: 'inline-block',
-                padding: '4px 12px',
-                borderRadius: 12,
-                fontWeight: 500
-            }}
-            >
-            {label}
-            </Typography>
-        </Box>
-        );
+    const DateSeparator = ({ label }) => {
+        const theme = useTheme();
+        const isDark = theme.palette.mode === 'dark';
 
+        return (
+            <Box sx={{ textAlign: 'center', my: 2 }}>
+                <Typography
+                    sx={{
+                        fontSize: 12,
+                        color: isDark ? '#ccc' : '#666',
+                        backgroundColor: isDark ? '#444' : '#e0e0e0',
+                        display: 'inline-block',
+                        padding: '4px 12px',
+                        borderRadius: 12,
+                        fontWeight: 500,
+                    }}
+                >
+                    {label}
+                </Typography>
+            </Box>
+        );
+    };
 
 
     return(
          <>
         <Wrapper>
             <Component>
-                {messages && messages.map((message, index) => (
-                    <Container key={index}>
-                        <Message message={message} />
-                    </Container>
-                    ))}
+                {messages && messages.map((message, index) => {
+                    const currentDate = formatDateSeparator(message.createdAt);
+                    const prevDate = index > 0 ? formatDateSeparator(messages[index - 1].createdAt) : null;
+
+                    const showDateSeparator = index === 0 || currentDate !== prevDate;
+
+                    return (
+                        <Container key={index}>
+                            {showDateSeparator && <DateSeparator label={currentDate} />}
+                            <Message message={message} />
+                        </Container>
+                    );
+                })}
+
 
                     {uploadingFiles.map(({ id, file }) => (
                     <Container key={id}>

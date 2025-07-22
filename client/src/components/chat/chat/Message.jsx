@@ -7,6 +7,7 @@ import GetAppIcon from '@mui/icons-material/GetApp';
 import axios from 'axios';
 import { saveAs } from 'file-saver';
 
+import { useTheme } from '@mui/material/styles';
 
 import { formatDate } from '../../../utils/common-utils';
 import UserContext from '../../../context/UserContext';
@@ -25,7 +26,7 @@ const Own = styled(Box)(({ theme }) => ({
 }));
 
 const Wrapper = styled(Box)(({ theme }) => ({
-    background: theme.palette.background.paper,
+    background: theme.palette.mode === 'dark' ? 'rgba(45, 45, 45, 0.51)' : '#f5f5f5',
     maxWidth: '60%',
     padding: 5,
     width: 'fit-content',
@@ -39,13 +40,13 @@ const Text =styled(Typography)`
     padding: 0 25px 0 5px;
 `;
 
-const Time =styled(Typography)`
-    font-size:10px;
+const Time = styled(Typography)(({ theme }) => ({
+    fontSize: 10,
     color: theme.palette.text.secondary,
-    margin-top: 6px;
-    word-break: keep-all;
-    margin-top: auto;
-`;
+    marginTop: 'auto',
+    wordBreak: 'keep-all'
+}));
+
 
 const PdfWrapper = styled(Box)(({ theme }) => ({
     display: 'flex',
@@ -84,6 +85,7 @@ const DownloadButton = styled('a')`
 
 
 const CircularProgressWithLabel = ({ value }) => {
+
   return (
     <Box sx={{ position: 'relative', display: 'inline-flex' }}>
       <CircularProgress variant="determinate" value={value} />
@@ -112,6 +114,8 @@ export const Message=({message})=>{
 
    const { account, setAccount, person, setPerson, socket } = useContext(UserContext);
     const [progress, setProgress] = useState(0);
+    const theme = useTheme();
+
 
 
     return(
@@ -220,6 +224,7 @@ const ImageMessage = ({ message }) => {
     const fileName = message?.text ? message.text.split('/').pop() : 'Unknown File';
     const fileType = getFileType(fileName);
     const isImage = fileType === 'image';
+    const theme = useTheme();
 
     const [progress, setProgress] = useState(0);
 
@@ -279,15 +284,16 @@ const ImageMessage = ({ message }) => {
                 </>
             ) : (
                 <Box 
-                    style={{
-                        background: '#f0f0f0',
-                        padding: 10,
-                        borderRadius: 10,
+                    sx={{
+                        backgroundColor: theme.palette.action.hover,
+                        padding: 2,
+                        borderRadius: 2,
                         maxWidth: 320,
                         display: 'flex',
-                        flexDirection: 'column'
+                        flexDirection: 'column',
                     }}
-                >
+                    >
+
                     <Box style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <img 
                             src={fileIcons[fileType] || fileIcons.other} 
@@ -295,10 +301,10 @@ const ImageMessage = ({ message }) => {
                             style={{ width: 48, height: 48 }} 
                         />
                         <Box>
-                            <Typography style={{ fontWeight: 600, fontSize: 14 }}>
+                            <Typography style={{ fontWeight: 600, fontSize: 14, color: theme.palette.text.primary  }}>
                                 {fileName.length > 30 ? fileName.substring(0, 30) + '...' : fileName}
                             </Typography>
-                            <Typography style={{ fontSize: 11, color: '#555' }}>
+                            <Typography style={{ fontSize: 11, color: theme.palette.text.secondary }}>
                                 {fileType.toUpperCase()} File
                             </Typography>
                         </Box>
@@ -327,7 +333,7 @@ const ImageMessage = ({ message }) => {
                 <Typography
                     sx={{
                         fontSize: 10,
-                        color: '#919191',
+                        color: theme.palette.text.secondary,
                         pr: 0.5, // Optional right padding
                     }}
                 >

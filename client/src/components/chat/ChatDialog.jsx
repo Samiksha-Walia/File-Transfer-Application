@@ -8,19 +8,27 @@ import ChatBox from "./chat/ChatBox";
 
 const StyledDialog = styled(Box)`
     display: flex;
-    height:900px;
+    flex: 1;
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
 `;
 const LeftComponent = styled(Box)`
-    min-width: 450px;
-    height:900px;
-    display: 'flex';
-   `;
+    min-width: 350px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+`;
 
 const RightComponent = styled(Box)`
-    width: 75%;
-    min-width: 300px;
-    height:100%;
-    border-left: 1px solid rgba(0,0,0,0.14);`
+    flex: 1;
+    height: 100%;
+    display: flex;
+    overflow: hidden;
+    flex-direction: column;
+    border-left: 1px solid rgba(0,0,0,0.14);
+`;
 
 const dialogStyle = {
     height: '95%',
@@ -28,7 +36,6 @@ const dialogStyle = {
     margin: '20px',
     maxWidth: '100%',
     maxHeight: '100%',
-    borderRadius: 0,
     boxShadow: 'none',
     overflow: 'hidden',
     display: 'flex',

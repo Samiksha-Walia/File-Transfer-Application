@@ -6,7 +6,7 @@ import Profile_icon from '../../../assets/Profile_icon.png';
 import axios from "axios";
 
 const Header = styled(Box)(({ theme }) => ({
-  height: 44,
+  height: 60,
   backgroundColor: theme.palette.background.default,
   display: 'flex',
   alignItems: 'center',

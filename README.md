@@ -3,7 +3,7 @@
 
 A **real-time file transfer** application built using **React (Vite)** and **Socket.IO**, allowing users to securely send and receive small files between authenticated users. The system supports **user registration/login**, encrypted file transfers, and **progress indicators**, all wrapped in a responsive and user-friendly interface.
 
-> ⚠️ *This full-stack application is built for educational, demo, and portfolio purposes. It demonstrates real-time communication and secure file sharing using modern web technologies.*
+> 🎓 **Internship Project**: This real-time file transfer application was developed as part of my internship at **Celebal Technologies**, focusing on real-time communication, secure data handling, and modern web technologies.
 
 
 ## 🚀 Key Features
@@ -18,6 +18,7 @@ A **real-time file transfer** application built using **React (Vite)** and **Soc
 - ✅ **Encrypted socket communication** for data safety  
 - ✅ Built with modern **React + Vite** stack  
 - ✅ Responsive, clean, and intuitive UI  
+- ✅ **Theme support (light/dark)** for better accessibility 
 
 
 

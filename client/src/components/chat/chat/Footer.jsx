@@ -6,6 +6,10 @@ import SendIcon from '@mui/icons-material/Send';
 
 import { uploadFile } from "../../../service/api";
 
+import { Picker } from 'emoji-mart';
+
+import 'emoji-mart/css/emoji-mart.css';
+
 const Container = styled(Box)(({ theme }) => ({
     height: 55,
     background: theme.palette.mode === 'dark' ? '#2a2f32' : '#ededed',
@@ -39,8 +43,16 @@ const ClipIcon = styled(AttachFile)`
     transform: rotate(40deg);
 `;
 
+const EmojiPickerWrapper = styled(Box)`
+  position: absolute;
+  bottom: 80px;
+  left: 75;
+  z-index: 1200;
+`;
+
 const Footer = ({sendText,setValue,value,file,setFile, setImage}) => {
     const [progress, setProgress] = useState(0);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
     useEffect(()=>{
         const getImage=async()=>{
@@ -70,14 +82,28 @@ const Footer = ({sendText,setValue,value,file,setFile, setImage}) => {
         setValue(e.target.files[0].name);
     }
 
+    const handleEmojiSelect = (emoji) => {
+    setValue((prev) => prev + emoji.native);
+  };
+
   return (
     <Container>
         <IconButton 
             sx={{ color: (theme) => theme.palette.text.secondary }}
-            
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
             >
             <EmojiEmotionsOutlined/>
         </IconButton>
+            {showEmojiPicker && (
+            <EmojiPickerWrapper>
+            <Picker
+                onSelect={handleEmojiSelect}
+                theme="auto"
+                showPreview={false}
+                showSkinTones={false}
+            />
+            </EmojiPickerWrapper>
+        )}
        
         <label htmlFor="fileInput">
              <IconButton sx={{ color: (theme) => theme.palette.text.secondary }}>

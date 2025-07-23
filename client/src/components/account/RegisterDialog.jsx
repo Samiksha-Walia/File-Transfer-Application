@@ -1,21 +1,13 @@
-import { Box, Dialog, Typography, TextField, Button } from '@mui/material';
+import { Box, Dialog, Typography, TextField, Button, useTheme } from '@mui/material';
 import { useState } from 'react';
 import axios from 'axios';
 
 
-const dialogStyle = {
-  height: 'auto',
-  marginTop: '5%',
-  width: '400px',
-  maxWidth: '100%',
-  borderRadius: '12px',
-  boxShadow: '0px 8px 24px rgba(0,0,0,0.2)',
-  overflow: 'hidden',
-  padding: '32px',
-  backgroundColor: '#fff'
-};
+
 
 const RegisterDialog = ({ onSwitch, onLoginSuccess }) => {
+  const theme = useTheme();
+
     const [form, setForm] = useState({
     username: '',
     password: '',
@@ -45,6 +37,18 @@ const RegisterDialog = ({ onSwitch, onLoginSuccess }) => {
   } catch (err) {
     setMessage(err.response?.data?.error || 'Registration failed');
   }
+};
+
+const dialogStyle = {
+  height: 'auto',
+  marginTop: '5%',
+  width: '400px',
+  maxWidth: '100%',
+  borderRadius: '12px',
+  boxShadow: '0px 8px 24px rgba(0,0,0,0.2)',
+  overflow: 'hidden',
+  padding: '32px',
+  backgroundColor: theme.palette.background.paper
 };
 
   return (
@@ -90,9 +94,9 @@ const RegisterDialog = ({ onSwitch, onLoginSuccess }) => {
           fullWidth
           sx={{
             textTransform: 'none',
-            backgroundColor: '#1976d2',
+            backgroundColor: theme.palette.primary.main,
             '&:hover': {
-              backgroundColor: '#1565c0'
+              backgroundColor: theme.palette.primary.dark
             },
             paddingY: 1
           }}
@@ -104,7 +108,14 @@ const RegisterDialog = ({ onSwitch, onLoginSuccess }) => {
 
         <Typography variant="body2" color="text.secondary">
             Already have an account?{' '}
-            <span style={{ color: '#1976d2', cursor: 'pointer' }} onClick={onSwitch}>
+            <span
+            style={{
+              color: theme.palette.primary.main,
+              cursor: 'pointer'
+            }}
+            onClick={onSwitch}
+          >
+
                 Login
             </span>
         </Typography>

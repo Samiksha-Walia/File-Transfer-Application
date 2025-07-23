@@ -10,6 +10,7 @@ const path = require('path');
 const { newConversation } = require('../controller/conversation-controller.js');
 require('dotenv').config();
 
+const Message = require('../models/Message'); // 👈 Required
 
 
 
@@ -141,6 +142,10 @@ router.put('/update-profile', verifyToken, async (req, res) => {
 });
 
 router.post('/conversation/add',newConversation);
+
+
+
+
 
 module.exports = router;
 

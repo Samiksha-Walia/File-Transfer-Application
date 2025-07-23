@@ -1,28 +1,31 @@
-import { Box, Dialog, Typography, TextField, Button } from '@mui/material';
+import { Box, Dialog, Typography, TextField, Button, useTheme  } from '@mui/material';
 import { useState } from 'react';
 import axios from 'axios';
 
 
+
+
+const LoginDialog = ({ onSwitch, onLoginSuccess }) => {
+    const [form, setForm] = useState({ username: '', password: '' });
+  const [message, setMessage] = useState('');
+
+  const theme = useTheme(); // Access current theme
+  const isDarkMode = theme.palette.mode === 'dark';
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 const dialogStyle = {
   height: 'auto',
   marginTop: '10%',
   width: '400px',
   maxWidth: '100%',
   borderRadius: '12px',
-  boxShadow: '0px 8px 24px rgba(0,0,0,0.2)',
+  boxShadow: theme.shadows[10],
   overflow: 'hidden',
   padding: '32px',
-  backgroundColor: '#fff'
+  backgroundColor: theme.palette.background.paper,
 };
-
-const LoginDialog = ({ onSwitch, onLoginSuccess }) => {
-    const [form, setForm] = useState({ username: '', password: '' });
-  const [message, setMessage] = useState('');
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
   const handleLogin = async () => {
     try {
       const res = await axios.post('http://localhost:5000/api/auth/login', form);
@@ -39,7 +42,7 @@ const LoginDialog = ({ onSwitch, onLoginSuccess }) => {
   return (
     <Dialog open={true} PaperProps={{ sx: dialogStyle }} hideBackdrop='true'>
       <Box display="flex" flexDirection="column" alignItems="center" gap={3}>
-        <Typography variant="h5" fontWeight={600}>
+        <Typography variant="h5" fontWeight={600} color="text.primary">
           Login to Blinq
         </Typography>
 
@@ -68,9 +71,9 @@ const LoginDialog = ({ onSwitch, onLoginSuccess }) => {
           fullWidth
           sx={{
             textTransform: 'none',
-            backgroundColor: '#1976d2',
+            backgroundColor: theme.palette.primary.main,
             '&:hover': {
-              backgroundColor: '#1565c0'
+              backgroundColor: theme.palette.primary.dark
             },
             paddingY: 1
           }}
@@ -78,11 +81,22 @@ const LoginDialog = ({ onSwitch, onLoginSuccess }) => {
           Login
         </Button>
         
-        {message && <Typography color="error">{message}</Typography>}
+        {message && (
+          <Typography color={message.includes('successful') ? 'success.main' : 'error.main'}>
+            {message}
+          </Typography>
+        )}
 
         <Typography variant="body2" color="text.secondary">
             Don’t have an account?{' '}
-            <span style={{ color: '#1976d2', cursor: 'pointer' }} onClick={onSwitch}>
+             <span
+                style={{
+                  color: theme.palette.primary.main,
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                }}
+                onClick={onSwitch}
+              >
                 Register
             </span>
         </Typography>

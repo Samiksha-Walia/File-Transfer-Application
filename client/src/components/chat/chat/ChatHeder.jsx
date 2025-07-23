@@ -1,4 +1,4 @@
-import { Box, Typography, styled, useTheme  } from "@mui/material";
+import { Box, Typography, styled, useTheme, Menu, MenuItem,IconButton } from "@mui/material";
 import { Search, MoreVert } from "@mui/icons-material";
 import {useContext, useState, useEffect} from 'react';
 import UserContext from "../../../context/UserContext";
@@ -39,12 +39,35 @@ const RightContainer = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   '& > svg': {
     padding: 8,
-    fontSize: 24,
+    fontSize: 40,
     color: theme.palette.text.primary,
   },
 }));
 
-const ChatHeader = ({person}) => {
+const MenuOption = styled(MenuItem)(({ theme }) => ({
+  fontSize: 14,
+  padding: '15px 60px 5px 20px',
+  color: theme.palette.mode === 'dark' ? '#e0e0e0' : '#4A4A4A',
+  backgroundColor: theme.palette.background.paper,
+  '&:hover': {
+    backgroundColor: theme.palette.action.hover,
+  },
+}));
+
+
+
+const ChatHeader = ({person, setOpenDrawer}) => {
+  const [open, setOpen] = useState(null);
+
+    const handleClose = () => {
+        setOpen(null);
+    }
+
+    const handleClick =(e) => {
+        setOpen(e.currentTarget);
+    }
+
+   
 
       const [users, setUsers] = useState([]);
 
@@ -79,10 +102,7 @@ const ChatHeader = ({person}) => {
                 </Status>
 
             </Box>
-            <RightContainer>
-                <Search />
-                <MoreVert />
-            </RightContainer>
+            
         </Header>
     )
 };

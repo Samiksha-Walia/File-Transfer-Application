@@ -4,9 +4,9 @@ import {Drawer, Typography,Box,styled} from '@mui/material';
 import Profile from './Profile';
 
 const Header = styled(Box)(({ theme }) => ({
-  backgroundColor:' #e2e2e2ff',
+  backgroundColor: theme.palette.mode === 'dark' ? '#121212' : '#f5f5f5',
   height: 195,
-  color: theme.palette.primary.contrastText,
+  color: theme.palette.text.primary,
   display: 'flex',
   alignItems: 'center',
   padding: '0 16px',
@@ -25,7 +25,7 @@ const drawerStyle = {
     height: '95%',
     width: '26.5%',
     boxShadow: 'none',
-    backgroundColor: 'background.default', 
+    backgroundColor: ' theme.palette.background.default', 
 }
 
 const InfoDrawer=({open, setOpen})=> {

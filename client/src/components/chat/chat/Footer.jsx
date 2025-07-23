@@ -151,9 +151,7 @@ const Footer = ({sendText,setValue,value,file,setFile, setImage}) => {
             onKeyDown={(e)=> sendText(e)}
             value={value}/>
         </Search>
-        <IconButton sx={{ color: (theme) => theme.palette.text.secondary }}>
-            <Mic />
-        </IconButton>
+        
         <IconButton 
             sx={{ color: (theme) => theme.palette.text.secondary }}
             onClick={(e) => sendText(e)}

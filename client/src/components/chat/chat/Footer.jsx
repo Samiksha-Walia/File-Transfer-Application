@@ -106,17 +106,20 @@ const Footer = ({sendText,setValue,value,file,setFile, setImage}) => {
         )}
        
         <label htmlFor="fileInput">
-             <IconButton sx={{ color: (theme) => theme.palette.text.secondary }}>
-                <ClipIcon/>
-            </IconButton>
-        </label>
-        
-        <input 
-            type="file"
-            id="fileInput"
-            style={{display:'none'}}
-            onChange={(e)=>onFileChange(e)}
-            />
+    <IconButton component="span" sx={{ color: (theme) => theme.palette.text.secondary }}>
+        <ClipIcon />
+    </IconButton>
+</label>
+
+<input 
+    type="file" 
+    id="fileInput" 
+    style={{ display:'none' }} 
+    onChange={onFileChange} 
+    multiple 
+/>
+
+      
         <Search>
             {progress > 0 && progress < 100 && (
                 <Box sx={{ width: '100%', mt: 1, px: 2 }}>

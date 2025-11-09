@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const url = 'http://localhost:5000/api';
+const serverUrl = 'http://localhost:5000';
+const url = `${serverUrl}/api`;
 
 export const addUser = async (data)=> {
     try{
@@ -30,10 +31,13 @@ export const getConversation=async (data)=>{
 
 export const newMessage = async (data) => {
     try {
+        console.log('Sending message data:', data); // Debug log
         const response = await axios.post(`${url}/message/add`, data);
+        console.log('Message response:', response.data); // Debug log
         return response.data;
     } catch (error) {
-        console.log('Error while calling newMessage API ', error.message);
+        console.error('Error while calling newMessage API:', error.response?.data || error.message);
+        throw error; // Propagate error to handle it in the component
     }
 };
 
@@ -58,9 +62,14 @@ export const uploadFile = async (data, setProgress) => {
                 setProgress(percent);
             }
         });
+        console.log('Upload response:', response); // Debug log
+        if (!response.data || !response.data.url) {
+            throw new Error('Invalid upload response');
+        }
         return response;
     } catch (error) {
-        console.log('Error while calling uploadFile API ', error);
+        console.error('Error while calling uploadFile API:', error);
         setProgress(0);
+        throw error; // Re-throw to handle in component
     }
 };

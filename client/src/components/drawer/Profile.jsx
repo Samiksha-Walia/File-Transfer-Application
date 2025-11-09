@@ -85,34 +85,53 @@ const Profile = () => {
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingAbout, setIsEditingAbout] = useState(false);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const token = localStorage.getItem('token');
-      try {
-        const res = await axios.get('http://localhost:5000/api/auth/user', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setUser(res.data);
-        setAbout(res.data.about || '');
-      } catch (err) {
-        console.error('Error fetching user:', err);
-      }
-    };
+    useEffect(() => {
+        const fetchUser = async () => {
+          const token = localStorage.getItem('token');
+          if (!token) {
+            console.log('No token found');
+            return;
+          }
 
-    fetchUser();
-  }, []);
+          try {
+            const res = await axios.get('http://localhost:5000/api/auth/user', {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+            console.log('User data:', res.data);
+            setUser(res.data);
+            setAbout(res.data.about || '');
+          } catch (err) {
+            console.error('Error fetching user:', err);
+            if (err.response?.status === 401) {
+              localStorage.removeItem('token'); // Clear invalid token
+            }
+          }
+        };
 
-  const handleImageChange = async (e) => {
+        fetchUser();
+      }, []);  const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // Validate file size and type
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      alert('File size too large. Please choose a file under 5MB.');
+      return;
+    }
+
+    if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+      alert('Please select an image file (JPEG, PNG, or GIF).');
+      return;
+    }
 
     const formData = new FormData();
     formData.append('profilePicture', file);
 
     const token = localStorage.getItem('token');
     try {
+      console.log('Uploading file:', file.name);
       const res = await axios.post(
         'http://localhost:5000/api/auth/upload-profile-picture',
         formData,
@@ -121,11 +140,25 @@ const Profile = () => {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data',
           },
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            console.log('Upload progress:', percentCompleted);
+          }
         }
       );
-      setUser((prev) => ({ ...prev, profilePicture: res.data.imageUrl }));
+      
+      console.log('Upload response:', res.data);
+      
+      if (res.data.imageUrl) {
+        setUser((prev) => ({ 
+          ...prev, 
+          profilePicture: res.data.imageUrl 
+        }));
+        handleMenuClose(); // Close the menu after successful upload
+      }
     } catch (err) {
       console.error('Upload error:', err);
+      alert('Failed to upload image. Please try again.');
     }
   };
 

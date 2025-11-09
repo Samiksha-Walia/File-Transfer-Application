@@ -1,17 +1,23 @@
-//import { newConversation } from '../controller/conversation-controller.js';
+import express from 'express';
+import User from '../models/User.js';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import multer from 'multer';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import dotenv from 'dotenv';
+import { GridFSBucket } from 'mongodb';
+import { Readable } from 'stream';
+import mongoose from 'mongoose';
+import { newConversation } from '../controller/conversation-controller.js';
 
-const express = require('express');
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 const router = express.Router();
-const User = require('../models/User');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const multer = require('multer');
-const path = require('path');
-const { newConversation } = require('../controller/conversation-controller.js');
-require('dotenv').config();
-
-const Message = require('../models/Message'); // 👈 Required
-
 
 
 
@@ -29,27 +35,93 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-// Configure multer storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // make sure this folder exists
+// Configure multer for memory storage
+const storage = multer.memoryStorage();
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
   },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `${req.userId}${ext}`);
-  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only JPEG, PNG and GIF are allowed.'));
+    }
+  }
 });
-const upload = multer({ storage });
 
 // Endpoint to update profile picture
 router.post('/upload-profile-picture', verifyToken, upload.single('profilePicture'), async (req, res) => {
   try {
-    console.log('Uploaded file:', req.file);
-    const imagePath = `http://localhost:5000/uploads/${req.file.filename}`;
-    await User.findByIdAndUpdate(req.userId, { profilePicture: imagePath });
-    res.json({ imageUrl: imagePath });
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    console.log('Processing profile picture upload:', {
+      userId: req.userId,
+      filename: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size
+    });
+    
+    // Create GridFS bucket
+    const bucket = new GridFSBucket(mongoose.connection.db, {
+      bucketName: 'uploads'
+    });
+
+    // Create a unique filename
+    const timestamp = Date.now();
+    const randomString = Math.random().toString(36).substring(7);
+    const ext = path.extname(req.file.originalname);
+    const filename = `profile-${req.userId}-${timestamp}-${randomString}${ext}`;
+
+    // Create upload stream
+    const uploadStream = bucket.openUploadStream(filename, {
+      contentType: req.file.mimetype,
+      metadata: {
+        userId: req.userId,
+        type: 'profile-picture',
+        originalname: req.file.originalname
+      }
+    });
+
+    // Create readable stream from buffer
+    const readStream = new Readable();
+    readStream.push(req.file.buffer);
+    readStream.push(null);
+
+    // Wait for upload to complete
+    await new Promise((resolve, reject) => {
+      readStream.pipe(uploadStream)
+        .on('finish', resolve)
+        .on('error', reject);
+    });
+
+    const serverUrl = process.env.SERVER_URL || 'http://localhost:5000';
+    const fileUrl = `${serverUrl}/api/file/${filename}`;
+
+    // Update user with the new file URL
+    const updatedUser = await User.findByIdAndUpdate(
+      req.userId, 
+      { profilePicture: `/api/file/${filename}` },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Return full URL to client
+    res.json({ 
+      imageUrl: fullImageUrl,
+      message: 'Profile picture updated successfully' 
+    });
   } catch (err) {
-    res.status(500).json({ message: 'Failed to upload image' });
+    console.error('Upload error:', err);
+    res.status(500).json({ message: 'Failed to upload image', error: err.message });
   }
 });
 
@@ -72,7 +144,14 @@ router.get('/other-users', verifyToken, async (req, res) => {
   console.log("Fetching other users for user:", req.userId);
   try {
     const users = await User.find({ _id: { $ne: req.userId } }).select('username _id profilePicture');
-    res.json(users);
+    // Convert all relative paths to full URLs
+    const usersWithFullUrls = users.map(user => ({
+      ...user.toObject(),
+      profilePicture: user.profilePicture 
+        ? `http://localhost:5000${user.profilePicture}` 
+        : user.profilePicture
+    }));
+    res.json(usersWithFullUrls);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Failed to fetch users' });
@@ -83,8 +162,28 @@ router.get('/other-users', verifyToken, async (req, res) => {
 router.get('/user', verifyToken, async (req, res) => {
   try {
     const user = await User.findById(req.userId).select('username profilePicture about');
-    res.json({ username: user.username, _id: user._id, profilePicture: user.profilePicture, about: user.about });
+    
+    // If there's a profile picture, ensure it's a full URL
+    const serverUrl = process.env.SERVER_URL || 'http://localhost:5000';
+    const profilePictureUrl = user.profilePicture
+      ? user.profilePicture.startsWith('http')
+        ? user.profilePicture
+        : `${serverUrl}${user.profilePicture}`
+      : '';
+    
+    console.log('Sending user data:', {
+      username: user.username,
+      profilePicture: profilePictureUrl
+    });
+
+    res.json({ 
+      username: user.username, 
+      _id: user._id, 
+      profilePicture: profilePictureUrl, 
+      about: user.about 
+    });
   } catch (err) {
+    console.error('Error retrieving user:', err);
     res.status(500).json({ message: 'Error retrieving user' });
   }
 });
@@ -147,7 +246,7 @@ router.post('/conversation/add',newConversation);
 
 
 
-module.exports = router;
+export default router;
 
 
 

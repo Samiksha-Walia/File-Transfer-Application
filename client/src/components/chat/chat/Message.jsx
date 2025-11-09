@@ -220,130 +220,153 @@ const FileDownloader = ({ fileUrl, fileName }) => {
 
 
 
-const ImageMessage = ({ message }) => {
-    const fileName = message?.text ? message.text.split('/').pop() : 'Unknown File';
-    const fileType = getFileType(fileName);
-    const isImage = fileType === 'image';
-    const theme = useTheme();
+    const ImageMessage = ({ message }) => {
+        const fileObj = message.files?.[0];  // Get the first file from the files array
+        const fileUrl = fileObj?.url;  // Get URL from file object
+        const fileName = fileObj?.name || 'Unknown File';
+        const mimeType = fileObj?.type || '';
 
-    const [progress, setProgress] = useState(0);
+        let fileType = getFileType(fileName);
+        //const isImage = fileType === 'image';
+        if (mimeType.startsWith('image/')) fileType = 'image';
+        else if (mimeType === 'application/pdf') fileType = 'pdf';
 
-    const [isDownloaded, setIsDownloaded] = useState(false);
+        const isImage = fileType === 'image';
 
-    
+        const theme = useTheme();
 
-    const handleDownload = () => {
-        downloadFile(message.text, fileName, setProgress, setIsDownloaded);
-        setIsDownloaded(true);
-    };
+        const [progress, setProgress] = useState(0);
 
-    return (
-        <Box style={{ position: 'relative' }}>
-            {isImage ? (
-                <>
-                    <img 
-                        src={message.text} 
-                        alt={fileName} 
-                        style={{ 
-                            width: '100%', 
-                            maxWidth: 300, 
-                            borderRadius: 10, 
-                            objectFit: 'contain' 
-                        }} 
-                    />
+        const [isDownloaded, setIsDownloaded] = useState(false);
 
-                    {/* Circular Download Button Overlay */}
-                    <Box
-                        
-                        onClick={handleDownload}
-                        sx={{
-                            position: 'absolute',
-                            top: 8,
-                            right: 8,
-                            backgroundColor: 'rgba(255,255,255,0.8)',
-                            borderRadius: '50%',
-                            width: 36,
-                            height: 36,
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            boxShadow: 1,
-                            cursor: 'pointer',
-                            zIndex: 1
-                        }}
-                    
-                    >
-                        <GetAppIcon fontSize="small" sx={{ color: '#333' }} />
-                    </Box>
-                    {/* Progress Overlay */}
-                    {progress > 0 && progress < 100 && (
-                        <Box sx={{ position: 'absolute', top: 50, right: 8 }}>
-                        <CircularProgressWithLabel value={progress} />
-                        </Box>
-                    )}
-                </>
-            ) : (
-                <Box 
-                    sx={{
-                        backgroundColor: theme.palette.action.hover,
-                        padding: 2,
-                        borderRadius: 2,
-                        maxWidth: 320,
-                        display: 'flex',
-                        flexDirection: 'column',
-                    }}
-                    >
+        
 
-                    <Box style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        const handleDownload = async () => {
+            try {
+            const response = await axios.get(fileUrl, {
+                responseType: 'blob',
+                onDownloadProgress: (e) => {
+                const percent = Math.round((e.loaded * 100) / (e.total || 1));
+                setProgress(percent);
+                },
+            });
+            const blob = new Blob([response.data]);
+            saveAs(blob, fileName);
+            setIsDownloaded(true);
+            setProgress(0);
+            } catch (err) {
+            console.error('Download failed', err);
+            setProgress(0);
+            }
+        };
+
+        return (
+            <Box style={{ position: 'relative' }}>
+                {isImage ? (
+                    <>
                         <img 
-                            src={fileIcons[fileType] || fileIcons.other} 
-                            alt={fileType} 
-                            style={{ width: 48, height: 48 }} 
+                            src={fileUrl} 
+                            alt={fileName} 
+                            style={{ 
+                                width: '100%', 
+                                maxWidth: 300, 
+                                borderRadius: 10, 
+                                objectFit: 'contain' 
+                            }} 
                         />
-                        <Box>
-                            <Typography style={{ fontWeight: 600, fontSize: 14, color: theme.palette.text.primary  }}>
-                                {fileName.length > 30 ? fileName.substring(0, 30) + '...' : fileName}
-                            </Typography>
-                            <Typography style={{ fontSize: 11, color: theme.palette.text.secondary }}>
-                                {fileType.toUpperCase()} File
-                            </Typography>
-                        </Box>
-                    </Box>
 
-                    <DownloadButton
-                        onClick={handleDownload}
-                        style={{
-                            cursor: 'pointer',
-                            pointerEvents: isDownloaded ? 'none' : 'auto',
-                            opacity: isDownloaded ? 0.7 : 1,
+                        {/* Circular Download Button Overlay */}
+                        <Box
+                            
+                            onClick={() => handleDownload(fileUrl, fileName, setProgress, setIsDownloaded)}
+                            sx={{
+                                position: 'absolute',
+                                top: 8,
+                                right: 8,
+                                backgroundColor: 'rgba(255,255,255,0.8)',
+                                borderRadius: '50%',
+                                width: 36,
+                                height: 36,
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                boxShadow: 1,
+                                cursor: 'pointer',
+                                zIndex: 1
+                            }}
+                        
+                        >
+                            <GetAppIcon fontSize="small" sx={{ color: '#333' }} />
+                        </Box>
+                        {/* Progress Overlay */}
+                        {progress > 0 && progress < 100 && (
+                            <Box sx={{ position: 'absolute', top: 50, right: 8 }}>
+                            <CircularProgressWithLabel value={progress} />
+                            </Box>
+                        )}
+                    </>
+                ) : (
+                    <Box 
+                        sx={{
+                            backgroundColor: theme.palette.action.hover,
+                            padding: 2,
+                            borderRadius: 2,
+                            maxWidth: 320,
+                            display: 'flex',
+                            flexDirection: 'column',
+                        }}
+                        >
+
+                        <Box style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <img 
+                                src={fileIcons[fileType] || fileIcons.other} 
+                                alt={fileType} 
+                                style={{ width: 48, height: 48 }} 
+                            />
+                            <Box>
+                                <Typography style={{ fontWeight: 600, fontSize: 14, color: theme.palette.text.primary  }}>
+                                    {fileName.length > 30 ? fileName.substring(0, 30) + '...' : fileName}
+                                </Typography>
+                                <Typography style={{ fontSize: 11, color: theme.palette.text.secondary }}>
+                                    {fileType.toUpperCase()} File
+                                </Typography>
+                            </Box>
+                        </Box>
+
+                        <DownloadButton
+                            onClick={handleDownload}
+                            style={{
+                                cursor: 'pointer',
+                                pointerEvents: isDownloaded ? 'none' : 'auto',
+                                opacity: isDownloaded ? 0.7 : 1,
+                            }}
+                        >
+                            {isDownloaded ? "Downloaded" : "Download"}
+                        </DownloadButton>
+                        {progress > 0 && progress < 100 && (
+                            <Box sx={{ mt: 1, alignSelf: 'center' }}>
+                            <CircularProgressWithLabel value={progress} />
+                            </Box>
+                        )}
+                    </Box>
+                )}
+
+                {/* Timestamp */}
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 0.5 }}>
+                    <Typography
+                        sx={{
+                            fontSize: 10,
+                            color: theme.palette.text.secondary,
+                            pr: 0.5, // Optional right padding
                         }}
                     >
-                        {isDownloaded ? "Downloaded" : "Download"}
-                    </DownloadButton>
-                    {progress > 0 && progress < 100 && (
-                        <Box sx={{ mt: 1, alignSelf: 'center' }}>
-                        <CircularProgressWithLabel value={progress} />
-                        </Box>
-                    )}
+                        {formatDate(message.createdAt)}
+                    </Typography>
                 </Box>
-            )}
 
-            {/* Timestamp */}
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 0.5 }}>
-                <Typography
-                    sx={{
-                        fontSize: 10,
-                        color: theme.palette.text.secondary,
-                        pr: 0.5, // Optional right padding
-                    }}
-                >
-                    {formatDate(message.createdAt)}
-                </Typography>
             </Box>
-
-        </Box>
-    );
-};
+        );
+    };
 
 
 

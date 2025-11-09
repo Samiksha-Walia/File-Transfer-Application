@@ -47,15 +47,19 @@ const Messages=({conversation})=>
     const [file, setFile] = useState();
     const [image, setImage] = useState('');
     const [incomingMessage, setIncomingMessage] = useState(null);
+    const [uploadedFiles, setUploadedFiles] = useState([]); // store uploaded file URLs
 
     const [uploadingFiles, setUploadingFiles] = useState([]);
 
     const scrollRef = useRef();
 
-    const handleFileUpload = (file) => {
-    const id = uuidv4();
-    setUploadingFiles(prev => [...prev, { id, file }]);
-    };
+    // const handleFileUpload = (urls) => {
+    // const id = uuidv4();
+    // //setUploadingFiles(prev => [...prev, { id, file }]);
+    // setUploadedFiles(prev => [...prev, ...urls]);
+    // };
+
+    const handleFileUpload = (files) => setUploadedFiles(prev => [...prev, ...files]);
 
     useEffect(() => {
         socket.current.on('getMessage', data => {
@@ -95,48 +99,72 @@ const Messages=({conversation})=>
     },[messages,uploadingFiles])
 
     useEffect(() => {
-        incomingMessage && conversation?.members?.includes(incomingMessage.senderId) && 
-            setMessages((prev) => [...prev, incomingMessage]);
-        
+        if (incomingMessage && conversation?.members?.includes(incomingMessage.senderId)) {
+            // Check if message already exists in the state to avoid duplicates
+            setMessages((prev) => {
+                const messageExists = prev.some(msg => 
+                    msg.senderId === incomingMessage.senderId && 
+                    msg.createdAt === incomingMessage.createdAt
+                );
+                return messageExists ? prev : [...prev, incomingMessage];
+            });
+            
+            // Scroll to bottom for new messages
+            setTimeout(() => {
+                scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
     }, [incomingMessage, conversation]);
 
-    const sendText =async(e)=>{
-        const isEnterKey = e.keyCode === 13 || e.which === 13;
-        const isClick = e.type === 'click';
+    const sendText = async (e, uploadedFiles = []) => {
+        try {
+            const isEnterKey = e.keyCode === 13 || e.which === 13;
+            const isClick = e.type === 'click';
 
-        if (!isEnterKey && !isClick) return;
-        
-        
-            let message = {};
-            if(!file){
-                message = {
-                    senderId: account._id,
-                    receiverId: person._id,
-                    conversationId:conversation._id,
-                    type:'text',
-                    text: value
-                }
-            } else{
-                message = {
-                    senderId: account._id,
-                    receiverId: person._id,
-                    conversationId:conversation._id,
-                    type:'file',
-                    text: image
-                };
+            if (!isEnterKey && !isClick) return;
+            if (!value.trim() && uploadedFiles.length === 0) return;
+
+            const message = {
+                senderId: account._id,
+                receiverId: person._id,
+                conversationId: conversation._id,
+                type: uploadedFiles.length > 0 ? 'file' : 'text',
+                text: value,
+                files: uploadedFiles.map(file => ({
+                    url: file.url,
+                    name: file.name,
+                    type: file.type
+                })),
+                createdAt: new Date().toISOString()
+            };
+
+            // Add message to local state immediately
+            setMessages(prev => [...prev, message]);
+
+            // Send to socket and save to database
+            socket.current.emit('sendMessage', message);
+            const savedMessage = await newMessage(message);
+
+            // Update the local message with the saved message's ID
+            if (savedMessage?._id) {
+                setMessages(prev => prev.map(msg => 
+                    msg === message ? savedMessage : msg
+                ));
             }
 
-            socket.current.emit('sendMessage', message);
-
-            await newMessage(message);
-
+            // Reset all states
             setValue('');
             setFile('');
             setImage('');
-            setNewMessageFlag(prev=> !prev)
-        
-
+            setUploadedFiles([]);
+            
+            // Scroll to bottom
+            scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
+        } catch (error) {
+            console.error('Error sending message:', error);
+        }
     };
+
 
     const DateSeparator = ({ label }) => {
         const theme = useTheme();

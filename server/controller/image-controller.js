@@ -7,31 +7,28 @@ const url = 'http://localhost:5000';
 export const uploadImage = async (req, res) => {
     try {
         if (!req.file) {
-            return res.status(400).send('No file uploaded.');
+            return res.status(400).json({
+                error: 'No file uploaded',
+                code: 'NO_FILE'
+            });
         }
 
-        const db = mongoose.connection.client.db();
-        const bucket = new GridFSBucket(db, { bucketName: 'photos' });
-
-        const filename = `${Date.now()}-${req.file.originalname}`;
-        const uploadStream = bucket.openUploadStream(filename);
-        uploadStream.end(req.file.buffer);
-
-        uploadStream.on('finish', () => {
-            const fileUrl = `${url}/api/file/${filename}`;
-            return res.status(200).json({
-                url: fileUrl,
-                filename: filename
-            });
+        // File is already saved by multer-gridfs-storage
+        const fileUrl = `${url}/api/file/${req.file.filename}`;
+        return res.status(200).json({
+            url: fileUrl,
+            name: req.file.originalname,
+            type: req.file.mimetype,
+            size: req.file.size
         });
 
-        uploadStream.on('error', (error) => {
-            console.log(error);
-            res.status(500).send('Error uploading file.');
-        });
     } catch (error) {
-        console.log(error);
-        res.status(500).send('Error uploading file.');
+        console.error('File upload error:', error);
+        res.status(500).json({
+            error: 'Error uploading file',
+            details: error.message,
+            code: error.code || 'UNKNOWN_ERROR'
+        });
     }
 };
 
@@ -41,9 +38,9 @@ export const uploadImage = async (req, res) => {
 export const getImage = async (req, res) => {
     try {
         const db = mongoose.connection.client.db();
-        const bucket = new GridFSBucket(db, { bucketName: 'photos' });
+        const bucket = new GridFSBucket(db, { bucketName: 'uploads' });
 
-        const file = await db.collection('photos.files').findOne({ filename: req.params.filename });
+        const file = await db.collection('uploads.files').findOne({ filename: req.params.filename });
 
         if (!file) {
             return res.status(404).json({ message: "File not found" });
@@ -60,8 +57,13 @@ export const getImage = async (req, res) => {
         const contentType = mime.lookup(file.filename) || 'application/octet-stream';
         res.set('Content-Type', contentType);
 
-        // Optional: force download for non-images
-        if (!contentType.startsWith('image/')) {
+        // Set cache control headers
+        res.set('Cache-Control', 'public, max-age=31557600'); // Cache for 1 year
+        res.set('Last-Modified', file.uploadDate.toUTCString());
+
+        // Set download header for non-viewable files
+        const isViewable = contentType.startsWith('image/') || contentType.startsWith('video/') || contentType === 'application/pdf';
+        if (!isViewable) {
             res.set('Content-Disposition', `attachment; filename="${file.filename}"`);
         }
         

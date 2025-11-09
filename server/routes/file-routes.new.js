@@ -3,29 +3,35 @@ import { upload } from '../utils/upload.js';
 import { GridFSBucket } from 'mongodb';
 import mongoose from 'mongoose';
 import { Readable } from 'stream';
-import path from 'path';
 
 const router = express.Router();
 
-// Debug middleware to log requests
+// Debug middleware
 router.use((req, res, next) => {
-    console.log('File route accessed:', req.method, req.path);
+    console.log('File route handler:', req.method, req.path);
     next();
 });
 
 // File upload route
 router.post('/upload', (req, res, next) => {
-    console.log('Upload middleware starting...');
+    console.log('Upload middleware starting');
     upload.single('file')(req, res, (err) => {
         if (err) {
-            console.error('Multer error:', err);
-            return res.status(400).json({ error: 'File upload error', details: err.message });
+            console.error('Upload middleware error:', err);
+            return res.status(400).json({ error: err.message });
         }
         next();
     });
 }, async (req, res) => {
+    console.log('Upload request received', {
+        file: req.file ? {
+            originalname: req.file.originalname,
+            mimetype: req.file.mimetype,
+            size: req.file.size
+        } : 'No file'
+    });
+
     try {
-        console.log('Processing uploaded file...');
         if (!req.file) {
             return res.status(400).json({ error: 'No file uploaded' });
         }
@@ -33,16 +39,20 @@ router.post('/upload', (req, res, next) => {
         // Create a unique filename
         const timestamp = Date.now();
         const randomString = Math.random().toString(36).substring(7);
-        const ext = path.extname(req.file.originalname);
-        const basename = path.basename(req.file.originalname, ext);
-        const safeBasename = basename.replace(/[^a-zA-Z0-9]/g, '-');
-        const filename = `${safeBasename}-${timestamp}-${randomString}${ext}`;
+        const safeOriginalname = req.file.originalname.replace(/[^a-zA-Z0-9.]/g, '-');
+        const filename = `${safeOriginalname}-${timestamp}-${randomString}`;
 
-        // Create GridFS upload stream
+        // Create GridFS bucket
         const bucket = new GridFSBucket(mongoose.connection.db, {
             bucketName: 'uploads'
         });
 
+        // Create a readable stream from buffer
+        const readStream = new Readable();
+        readStream.push(req.file.buffer);
+        readStream.push(null);
+
+        // Create upload stream
         const uploadStream = bucket.openUploadStream(filename, {
             contentType: req.file.mimetype,
             metadata: {
@@ -51,34 +61,32 @@ router.post('/upload', (req, res, next) => {
             }
         });
 
-        // Create readable stream from buffer and pipe to GridFS
-        const readStream = new Readable();
-        readStream.push(req.file.buffer);
-        readStream.push(null);
-        
         // Handle upload completion
         uploadStream.on('finish', () => {
             const serverUrl = process.env.SERVER_URL || 'http://localhost:5000';
             const fileUrl = `${serverUrl}/api/file/${filename}`;
+            
             console.log('File uploaded successfully:', {
                 filename,
                 url: fileUrl,
                 type: req.file.mimetype
             });
-            
+
             res.json({
                 url: fileUrl,
                 name: req.file.originalname,
                 type: req.file.mimetype,
-                size: req.file.size,
-                filename: filename
+                size: req.file.size
             });
         });
 
-        // Handle upload error
+        // Handle upload errors
         uploadStream.on('error', (error) => {
             console.error('Upload stream error:', error);
-            res.status(500).json({ error: 'File upload failed', details: error.message });
+            res.status(500).json({
+                error: 'File upload failed',
+                details: error.message
+            });
         });
 
         // Start the upload
@@ -86,56 +94,55 @@ router.post('/upload', (req, res, next) => {
 
     } catch (error) {
         console.error('Upload error:', error);
-        res.status(500).json({ error: 'File upload failed', details: error.message });
+        res.status(500).json({
+            error: 'File upload failed',
+            details: error.message
+        });
     }
 });
 
 // File download route
 router.get('/:filename', async (req, res) => {
     try {
+        console.log('Download request for file:', req.params.filename);
+        
         const bucket = new GridFSBucket(mongoose.connection.db, {
             bucketName: 'uploads'
         });
 
-        console.log('Looking for file:', req.params.filename);
-
         const file = await mongoose.connection.db
             .collection('uploads.files')
-            .findOne({
-                $or: [
-                    { filename: req.params.filename },
-                    { 'metadata.originalname': req.params.filename }
-                ]
-            });
+            .findOne({ filename: req.params.filename });
 
         if (!file) {
             console.log('File not found:', req.params.filename);
             return res.status(404).json({ error: 'File not found' });
         }
 
-        console.log('Found file:', file.filename);
+        console.log('Found file:', {
+            filename: file.filename,
+            contentType: file.metadata?.mimetype
+        });
 
-        // Set the proper content type
-        const contentType = file.metadata?.mimetype || 'application/octet-stream';
-        res.set('Content-Type', contentType);
-        
-        // Set caching headers for better performance
+        // Set appropriate headers
+        res.set('Content-Type', file.metadata?.mimetype || 'application/octet-stream');
         res.set('Cache-Control', 'public, max-age=31536000');
-        
-        // Set the content disposition
-        if (!contentType.startsWith('image/')) {
+
+        if (!file.metadata?.mimetype?.startsWith('image/')) {
             res.set('Content-Disposition', `attachment; filename="${file.metadata?.originalname || file.filename}"`);
         }
 
-        // Create a download stream and pipe it to the response
-        const downloadStream = bucket.openDownloadStreamByName(req.params.filename);
+        // Stream the file
+        const downloadStream = bucket.openDownloadStreamByName(file.filename);
         downloadStream.pipe(res);
 
     } catch (error) {
         console.error('Download error:', error);
-        res.status(500).json({ error: 'File download failed', details: error.message });
+        res.status(500).json({
+            error: 'File download failed',
+            details: error.message
+        });
     }
 });
 
 export default router;
-

@@ -14,6 +14,8 @@
     "axios": "^1.10.0",
     "caniuse-lite": "^1.0.30001754",
     "emoji-mart": "^5.6.0",
+    "file-saver": "^2.0.5",
+    "mime-types": "^3.0.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-redux": "^9.2.0",

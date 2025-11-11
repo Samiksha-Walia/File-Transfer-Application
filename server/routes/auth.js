@@ -106,7 +106,7 @@ router.post('/upload-profile-picture', verifyToken, upload.single('profilePictur
     // Update user with the new file URL
     const updatedUser = await User.findByIdAndUpdate(
       req.userId, 
-      { profilePicture: `/api/file/${filename}` },
+      { profilePicture: fileUrl },  // Store the full URL
       { new: true }
     );
 
@@ -116,7 +116,7 @@ router.post('/upload-profile-picture', verifyToken, upload.single('profilePictur
 
     // Return full URL to client
     res.json({ 
-      imageUrl: fullImageUrl,
+      imageUrl: fileUrl,
       message: 'Profile picture updated successfully' 
     });
   } catch (err) {
@@ -144,11 +144,13 @@ router.get('/other-users', verifyToken, async (req, res) => {
   console.log("Fetching other users for user:", req.userId);
   try {
     const users = await User.find({ _id: { $ne: req.userId } }).select('username _id profilePicture');
-    // Convert all relative paths to full URLs
+    // Convert all relative paths to full URLs only if not already a full URL
     const usersWithFullUrls = users.map(user => ({
       ...user.toObject(),
       profilePicture: user.profilePicture 
-        ? `http://localhost:5000${user.profilePicture}` 
+        ? (user.profilePicture.startsWith('http://') || user.profilePicture.startsWith('https://') 
+            ? user.profilePicture 
+            : `http://localhost:5000${user.profilePicture}`)
         : user.profilePicture
     }));
     res.json(usersWithFullUrls);
@@ -163,13 +165,8 @@ router.get('/user', verifyToken, async (req, res) => {
   try {
     const user = await User.findById(req.userId).select('username profilePicture about');
     
-    // If there's a profile picture, ensure it's a full URL
-    const serverUrl = process.env.SERVER_URL || 'http://localhost:5000';
-    const profilePictureUrl = user.profilePicture
-      ? user.profilePicture.startsWith('http')
-        ? user.profilePicture
-        : `${serverUrl}${user.profilePicture}`
-      : '';
+    // Use profile picture URL as is since we now store full URLs
+    const profilePictureUrl = user.profilePicture || '';
     
     console.log('Sending user data:', {
       username: user.username,

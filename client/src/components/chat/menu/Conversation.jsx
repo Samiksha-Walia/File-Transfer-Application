@@ -73,7 +73,11 @@ const Conversation = ({ user }) => {
  
 
   const [message, setMessage] = useState({});
+  const [imgSrc, setImgSrc] = useState(user.profilePicture || Profile_icon);
 
+  useEffect(() => {
+    setImgSrc(user.profilePicture || Profile_icon);
+  }, [user.profilePicture]);
 
   useEffect(() => {
         const getConversationMessage = async() => {
@@ -82,6 +86,10 @@ const Conversation = ({ user }) => {
         }
         getConversationMessage();
     }, [newMessageFlag]);
+
+  const handleImageError = () => {
+    setImgSrc(Profile_icon);
+  };
 
 
   const getUser = async () => {
@@ -98,7 +106,7 @@ const Conversation = ({ user }) => {
   return (
     <Component onClick={ getUser}>
       <Box>
-        <Image src={user.profilePicture || Profile_icon} alt="Profile" />
+        <Image src={imgSrc} alt="" onError={handleImageError} />
       </Box>
       <Box style={{ width:'100%'}}>
         <Container>

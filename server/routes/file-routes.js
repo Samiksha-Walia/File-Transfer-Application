@@ -99,14 +99,16 @@ router.get('/:filename', async (req, res) => {
 
         console.log('Looking for file:', req.params.filename);
 
+        // Log the request details
+        console.log('File request details:', {
+            filename: req.params.filename,
+            url: req.url,
+            headers: req.headers
+        });
+
         const file = await mongoose.connection.db
             .collection('uploads.files')
-            .findOne({
-                $or: [
-                    { filename: req.params.filename },
-                    { 'metadata.originalname': req.params.filename }
-                ]
-            });
+            .findOne({ filename: req.params.filename });
 
         if (!file) {
             console.log('File not found:', req.params.filename);
@@ -128,7 +130,17 @@ router.get('/:filename', async (req, res) => {
         }
 
         // Create a download stream and pipe it to the response
-        const downloadStream = bucket.openDownloadStreamByName(req.params.filename);
+        const downloadStream = bucket.openDownloadStream(file._id);
+        
+        // Handle stream errors
+        downloadStream.on('error', (error) => {
+            console.error('Stream error:', error);
+            if (!res.headersSent) {
+                res.status(500).json({ error: 'Error streaming file' });
+            }
+        });
+
+        // Pipe the file to the response
         downloadStream.pipe(res);
 
     } catch (error) {

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@emoji-mart/react": "^1.1.1",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^7.1.1",
@@ -13,7 +14,7 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.10.0",
     "caniuse-lite": "^1.0.30001754",
-    "emoji-mart": "^5.6.0",
+    "emoji-mart": "^3.0.1",
     "file-saver": "^2.0.5",
     "mime-types": "^3.0.1",
     "react": "^19.1.0",

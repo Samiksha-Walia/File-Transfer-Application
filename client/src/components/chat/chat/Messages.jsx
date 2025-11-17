@@ -40,7 +40,7 @@ const Container = styled(Box)`
 
 const Messages=({conversation})=>
 {
-    const { account, setAccount, person, setPerson, socket, newMessageFlag,setNewMessageFlag } = useContext(UserContext);
+    const { account, setAccount, person, setPerson, socket, newMessageFlag,setNewMessageFlag, voiceMessage, setVoiceMessage } = useContext(UserContext);
     const [value,setValue]=useState('');
     const [messages,setMessages] = useState([]);
     //const [newMessageFlag,setNewMessageFlag] = useState([]);
@@ -51,13 +51,9 @@ const Messages=({conversation})=>
 
     const [uploadingFiles, setUploadingFiles] = useState([]);
 
-    const scrollRef = useRef();
+    const [pendingVoiceConfirm, setPendingVoiceConfirm] = useState(null);
 
-    // const handleFileUpload = (urls) => {
-    // const id = uuidv4();
-    // //setUploadingFiles(prev => [...prev, { id, file }]);
-    // setUploadedFiles(prev => [...prev, ...urls]);
-    // };
+    const scrollRef = useRef();
 
     const handleFileUpload = (files) => setUploadedFiles(prev => [...prev, ...files]);
 
@@ -71,28 +67,97 @@ const Messages=({conversation})=>
     }, []);
 
     useEffect(() => {
-    const getMessageDetails = async () => {
-        if(conversation?._id) {
-            const data = await getMessages(conversation._id);
-            setMessages(data);
+        if (!voiceMessage || !voiceMessage.recipientName) return;
+
+        const normalizedTarget = voiceMessage.recipientName.toLowerCase();
+        if (person?.username && person.username.toLowerCase() === normalizedTarget) {
+            setValue(voiceMessage.message || '');
+            setVoiceMessage(null);
+            const pending = {
+                message: voiceMessage.message || '',
+                recipientName: person.username
+            };
+            console.log('Setting pendingVoiceConfirm from voiceMessage:', pending);
+            setPendingVoiceConfirm(pending);
         }
-    };
-    conversation._id && getMessageDetails();
-}, [person._id, conversation._id,newMessageFlag]);
+    }, [voiceMessage, person, setVoiceMessage]);
+
+    useEffect(() => {
+        // Start confirmation only when we have a pending voice command AND a valid conversation id
+        if (!pendingVoiceConfirm || !conversation?._id) return;
+
+        console.log('Starting voice confirmation flow with:', pendingVoiceConfirm, 'conversationId:', conversation._id);
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const synth = window.speechSynthesis;
+
+        const { message, recipientName } = pendingVoiceConfirm;
+
+        if (synth && message && recipientName) {
+            const utterance = new SpeechSynthesisUtterance(`Sending message "${message}" to ${recipientName}. Say yes to send or no to cancel.`);
+            synth.speak(utterance);
+        }
+
+        if (!SpeechRecognition) {
+            setPendingVoiceConfirm(null);
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript.toLowerCase();
+
+            console.log('Voice confirmation transcript:', transcript);
+
+            if (transcript.includes('yes')) {
+                console.log('Voice confirmation: interpreted as YES, sending message.');
+                sendText({ type: 'click' });
+            } else {
+                console.log('Voice confirmation: not YES, message will NOT be sent.');
+            }
+
+            setPendingVoiceConfirm(null);
+        };
+
+        recognition.onend = () => {
+            setPendingVoiceConfirm(null);
+        };
+
+        recognition.start();
+
+        return () => {
+            recognition.onresult = null;
+            recognition.onend = null;
+            recognition.stop();
+        };
+    }, [pendingVoiceConfirm, conversation?._id]);
+
+    useEffect(() => {
+        const getMessageDetails = async () => {
+            if(conversation?._id) {
+                const data = await getMessages(conversation._id);
+                setMessages(data);
+            }
+        };
+        conversation._id && getMessageDetails();
+    }, [person._id, conversation._id,newMessageFlag]);
 
     useEffect(() => {
         const timeout = setTimeout(() => {
-        scrollRef.current?.scrollIntoView({ behavior: 'auto' });
+            scrollRef.current?.scrollIntoView({ behavior: 'auto' });
         }, 100);
         return () => clearTimeout(timeout);
     }, [messages, uploadingFiles]);
     
     useEffect(() => {
-    if (messages.length > 0) {
-        scrollRef.current?.scrollIntoView({ behavior: 'auto' }); // not smooth here
-    }
+        if (messages.length > 0) {
+            scrollRef.current?.scrollIntoView({ behavior: 'auto' }); // not smooth here
+        }
     }, [messages]);
-
 
     useEffect(()=>{
         scrollRef.current?.scrollIntoView({ behavior:'smooth'})

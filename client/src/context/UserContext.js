@@ -8,6 +8,7 @@ export const UserProvider = ({ children }) => {
     const [person, setPerson] = useState({});
     const [activeUsers, setActiveUsers] = useState([]);
     const [newMessageFlag, setNewMessageFlag]  = useState(false);
+    const [voiceMessage, setVoiceMessage] = useState(null);
 
     const [message, setMessage] = useState({});
     const socket = useRef();
@@ -26,7 +27,9 @@ export const UserProvider = ({ children }) => {
             activeUsers,
             setActiveUsers,
             newMessageFlag,
-            setNewMessageFlag
+            setNewMessageFlag,
+            voiceMessage,
+            setVoiceMessage
         }}>
             {children}
         </UserContext.Provider>

@@ -20,7 +20,10 @@ const ChatBox=()=> {
             console.log(data);
             setConversation(data);
         }
-        getConversationDetails();
+
+        if (person?._id) {
+            getConversationDetails();
+        }
     },[person._id]);
 
     return (

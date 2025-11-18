@@ -1,4 +1,4 @@
-import { Box, Typography, styled, useTheme, Menu, MenuItem,IconButton , SwipeableDrawer,Divider} from "@mui/material";
+import { Box, Typography, styled, useTheme, Menu, MenuItem,IconButton , SwipeableDrawer,Divider } from "@mui/material";
 import { Search, MoreVert } from "@mui/icons-material";
 import {useContext, useState, useEffect} from 'react';
 import UserContext from "../../../context/UserContext";
@@ -58,6 +58,7 @@ const MenuOption = styled(MenuItem)(({ theme }) => ({
 
 const ChatHeader = ({person, setOpenDrawer}) => {
   const [open, setOpen] = useState(null);
+  const [profileAnchorEl, setProfileAnchorEl] = useState(null);
 
     const handleClose = () => {
         setOpen(null);
@@ -93,8 +94,14 @@ const ChatHeader = ({person, setOpenDrawer}) => {
         fetchData();
       }, []);
     return(
+        <>
         <Header>
-            <Image src={person?.profilePicture || Profile_icon} alt="dp"/>
+            <Image
+              src={person?.profilePicture || Profile_icon}
+              alt="dp"
+              onClick={(e) => setProfileAnchorEl(e.currentTarget)}
+              style={{ cursor: 'pointer' }}
+            />
             <Box>
                 <Name>{person.username}</Name>
                 <Status>
@@ -104,6 +111,44 @@ const ChatHeader = ({person, setOpenDrawer}) => {
             </Box>
             
         </Header>
+        <Menu
+          anchorEl={profileAnchorEl}
+          open={Boolean(profileAnchorEl)}
+          onClose={() => setProfileAnchorEl(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+          PaperProps={{
+            sx: {
+              mt: 1,
+              px: 2,
+              py: 2,
+              minWidth: 260,
+              borderRadius: 2,
+            },
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 2 }}>
+            <Image src={person?.profilePicture || Profile_icon} alt="dp" />
+            <Box>
+              <Typography variant="subtitle1">{person?.username}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                {activeUsers.find(user => user._id === person._id) ? 'Online' : 'Offline'}
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box sx={{ mb: 1 }}>
+            <Typography variant="caption" color="text.secondary">
+              About
+            </Typography>
+            <Typography variant="body2">
+              {person?.about || 'Hey there! I am using FTA.'}
+            </Typography>
+          </Box>
+
+         
+        </Menu>
+        </>
     )
 };
 export default ChatHeader;

@@ -1,4 +1,4 @@
-import { Box, Typography, styled } from '@mui/material';
+import { Box, Typography, styled, Badge } from '@mui/material';
 import Profile_icon from '../../../assets/Profile_icon.png';
 
 import {useContext, useEffect,useState} from 'react'
@@ -35,12 +35,11 @@ const Image = styled('img')({
 
 const Container = styled(Box)`
     display: flex;
+    align-items: center;
 `;
 
 const Timestamp = styled(Typography)(({ theme }) => ({
   fontSize: 12,
-  marginLeft: 'auto',
-  marginRight: 20,
   color: theme.palette.text.secondary,
 }));
 
@@ -49,6 +48,9 @@ const Text = styled(Typography)(({ theme }) => ({
   display: 'block',
   fontSize: 14,
   color: theme.palette.text.secondary,
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
 }));
 
 const HoverableUsername = styled(Typography)(({ theme }) => ({
@@ -69,7 +71,7 @@ const HoverableUsername = styled(Typography)(({ theme }) => ({
 
 const Conversation = ({ user }) => {
 
-  const { account, setAccount, person, setPerson, socket,newMessageFlag } = useContext(UserContext);
+  const { account, setAccount, person, setPerson, socket,newMessageFlag, unreadCounts } = useContext(UserContext);
  
 
   const [message, setMessage] = useState({});
@@ -103,6 +105,8 @@ const Conversation = ({ user }) => {
 };
 
 
+  const hasUnread = unreadCounts?.[user._id] > 0;
+
   return (
     <Component onClick={ getUser}>
       <Box>
@@ -110,15 +114,37 @@ const Conversation = ({ user }) => {
       </Box>
       <Box style={{ width:'100%'}}>
         <Container>
-         <HoverableUsername >{user.username}</HoverableUsername>
-         {
-            message?.text && 
-                <Timestamp>{formatDate(message?.timestamp)}</Timestamp>
-         }
+          <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+            <HoverableUsername sx={hasUnread ? { fontWeight: 700 } : undefined}>
+              {user.username}
+            </HoverableUsername>
+            <Text sx={hasUnread ? { fontWeight: 500, color: 'text.primary' } : undefined}>
+              {message?.text?.includes('localhost') ? 'media': message.text}
+            </Text>
+          </Box>
+          <Box sx={{ ml: 'auto', mr: 2, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
+            {message?.text && (
+              <Timestamp>{formatDate(message?.timestamp)}</Timestamp>
+            )}
+            {hasUnread && (
+              <Box sx={{ mt: 0.5 }}>
+                <Badge
+                  color="success"
+                  badgeContent={unreadCounts[user._id]}
+                  sx={{
+                    '& .MuiBadge-badge': {
+                      minWidth: 18,
+                      height: 18,
+                      borderRadius: '50%',
+                      fontSize: 11,
+                      px: 0.7,
+                    },
+                  }}
+                />
+              </Box>
+            )}
+          </Box>
         </Container>
-        <Box>
-          <Text>{message?.text?.includes('localhost') ? 'media': message.text}</Text>
-        </Box>
       </Box>
       
     </Component>

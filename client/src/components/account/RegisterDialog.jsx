@@ -1,5 +1,7 @@
 import { Box, Dialog, Typography, TextField, Button, useTheme } from '@mui/material';
 import { useState } from 'react';
+import Light_Blinq from '../../assets/Light_Blinq_copy.png';
+import dark_Blinq from '../../assets/dark_Blinq_copy.png';
 import axios from 'axios';
 
 
@@ -7,6 +9,8 @@ import axios from 'axios';
 
 const RegisterDialog = ({ onSwitch, onLoginSuccess }) => {
   const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
+  const logoSrc = isDarkMode ? dark_Blinq : Light_Blinq;
 
     const [form, setForm] = useState({
     username: '',
@@ -42,20 +46,31 @@ const RegisterDialog = ({ onSwitch, onLoginSuccess }) => {
 const dialogStyle = {
   height: 'auto',
   marginTop: '5%',
-  width: '400px',
+  width: 420,
   maxWidth: '100%',
-  borderRadius: '12px',
-  boxShadow: '0px 8px 24px rgba(0,0,0,0.2)',
+  borderRadius: '16px',
+  boxShadow: '0px 10px 30px rgba(0,0,0,0.25)',
   overflow: 'hidden',
-  padding: '32px',
-  backgroundColor: theme.palette.background.paper
+  padding: '32px 36px 30px',
+  backgroundColor: theme.palette.background.paper,
 };
 
   return (
     <Dialog open={true} PaperProps={{ sx: dialogStyle }} hideBackdrop='true'>
-      <Box display="flex" flexDirection="column" alignItems="center" gap={3}>
-        <Typography variant="h5" fontWeight={600}>
+      <Box display="flex" flexDirection="column" alignItems="center" gap={2.5} sx={{ width: '100%' }}>
+        <Box sx={{ mb: 0.5 }}>
+          <Box
+            component="img"
+            src={logoSrc}
+            alt="Blinq logo"
+            sx={{ width: 270, height: 'auto' }}
+          />
+        </Box>
+        <Typography variant="h5" fontWeight={700}>
           Create an Account on Blinq
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          Sign up to start chatting instantly.
         </Typography>
 
         <TextField
@@ -64,6 +79,8 @@ const dialogStyle = {
           label="Username"
           variant="outlined"
           size="small"
+          margin="dense"
+          autoFocus
           onChange={handleChange}
         />
 
@@ -74,6 +91,7 @@ const dialogStyle = {
           variant="outlined"
           type="password"
           size="small"
+          margin="dense"
           onChange={handleChange}
         />
 
@@ -84,6 +102,7 @@ const dialogStyle = {
           variant="outlined"
           type="password"
           size="small"
+          margin="dense"
           onChange={handleChange}
         />
 
@@ -104,7 +123,15 @@ const dialogStyle = {
           Sign Up
         </Button>
 
-        {message && <Typography color="error">{message}</Typography>}
+        {message && (
+          <Typography
+            variant="body2"
+            sx={{ mt: 0.5 }}
+            color={message.toLowerCase().includes('success') ? 'success.main' : 'error.main'}
+          >
+            {message}
+          </Typography>
+        )}
 
         <Typography variant="body2" color="text.secondary">
             Already have an account?{' '}

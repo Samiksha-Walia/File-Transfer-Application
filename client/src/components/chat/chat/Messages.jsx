@@ -40,7 +40,7 @@ const Container = styled(Box)`
 
 const Messages=({conversation})=>
 {
-    const { account, setAccount, person, setPerson, socket, newMessageFlag,setNewMessageFlag, voiceMessage, setVoiceMessage } = useContext(UserContext);
+    const { account, setAccount, person, setPerson, socket, newMessageFlag,setNewMessageFlag, voiceMessage, setVoiceMessage, unreadCounts, setUnreadCounts } = useContext(UserContext);
     const [value,setValue]=useState('');
     const [messages,setMessages] = useState([]);
     //const [newMessageFlag,setNewMessageFlag] = useState([]);
@@ -107,17 +107,27 @@ const Messages=({conversation})=>
         recognition.lang = 'en-US';
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
+        // Allow listening a bit longer for yes/no
+        recognition.continuous = true;
 
         recognition.onresult = (event) => {
             const transcript = event.results[0][0].transcript.toLowerCase();
 
             console.log('Voice confirmation transcript:', transcript);
 
-            if (transcript.includes('yes')) {
+            const positiveWords = ['yes', 'yeah', 'yep', 'yup', 'sure', 'send'];
+            const negativeWords = ['no', 'nope', 'nah', "don't", "do not"];
+
+            const isPositive = positiveWords.some(word => transcript.includes(word));
+            const isNegative = negativeWords.some(word => transcript.includes(word));
+
+            if (isPositive && !isNegative) {
                 console.log('Voice confirmation: interpreted as YES, sending message.');
                 sendText({ type: 'click' });
+            } else if (isNegative && !isPositive) {
+                console.log('Voice confirmation: interpreted as NO, message will NOT be sent.');
             } else {
-                console.log('Voice confirmation: not YES, message will NOT be sent.');
+                console.log('Voice confirmation: ambiguous response, message will NOT be sent.');
             }
 
             setPendingVoiceConfirm(null);
@@ -129,10 +139,24 @@ const Messages=({conversation})=>
 
         recognition.start();
 
+        // Keep the mic open for up to 5 seconds after speaking the confirmation
+        const stopTimeout = setTimeout(() => {
+            try {
+                recognition.stop();
+            } catch (e) {
+                console.log('Error stopping confirmation recognizer after timeout:', e);
+            }
+        }, 5000);
+
         return () => {
+            clearTimeout(stopTimeout);
             recognition.onresult = null;
             recognition.onend = null;
-            recognition.stop();
+            try {
+                recognition.stop();
+            } catch (e) {
+                // ignore
+            }
         };
     }, [pendingVoiceConfirm, conversation?._id]);
 
@@ -141,6 +165,16 @@ const Messages=({conversation})=>
             if(conversation?._id) {
                 const data = await getMessages(conversation._id);
                 setMessages(data);
+
+                // Mark messages as read for this chat by clearing unread count for the other user
+                if (account?._id && person?._id) {
+                    setUnreadCounts(prev => {
+                        if (!prev[person._id]) return prev;
+                        const updated = { ...prev };
+                        delete updated[person._id];
+                        return updated;
+                    });
+                }
             }
         };
         conversation._id && getMessageDetails();
@@ -173,6 +207,9 @@ const Messages=({conversation})=>
                 );
                 return messageExists ? prev : [...prev, incomingMessage];
             });
+
+            // Notify other components (e.g. Conversations list) that a new message arrived
+            setNewMessageFlag(prev => !prev);
             
             // Scroll to bottom for new messages
             setTimeout(() => {
@@ -222,6 +259,7 @@ const Messages=({conversation})=>
             setFile('');
             setImage('');
             setUploadedFiles([]);
+            setNewMessageFlag(prev => !prev);
             
             // Scroll to bottom
             scrollRef.current?.scrollIntoView({ behavior: 'smooth' });

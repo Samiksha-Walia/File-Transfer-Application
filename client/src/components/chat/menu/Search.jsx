@@ -1,7 +1,9 @@
 import {Search as SearchIcon} from '@mui/icons-material';
 import {Mic as MicIcon} from '@mui/icons-material';
+import {ArrowBack} from '@mui/icons-material';
 import {Box, styled,InputBase, useTheme } from '@mui/material';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
+
 import UserContext from '../../../context/UserContext';
 
 const Component = styled(Box)(({ theme }) => ({
@@ -32,6 +34,10 @@ const Icon = styled(Box)(({ theme }) => ({
   height: '100%',
   padding: '6px 10px',
   color: theme.palette.text.secondary,
+  display: 'flex',
+  alignItems: 'center',
+  cursor: 'pointer',
+  zIndex: 1,
 }));
 
 const MicIconBox = styled(Box)(({ theme }) => ({
@@ -55,6 +61,19 @@ const InputField = styled(InputBase)(({ theme }) => ({
 const Search = ({setText}) => {
     const theme = useTheme();
     const { setVoiceMessage } = useContext(UserContext);
+
+    const [searchValue, setSearchValue] = useState('');
+
+    const handleChange = (e) => {
+        const value = e.target.value;
+        setSearchValue(value);
+        setText(value);
+    };
+
+    const handleClearSearch = () => {
+        setSearchValue('');
+        setText('');
+    };
 
     const handleMicClick = () => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -91,22 +110,31 @@ const Search = ({setText}) => {
             const recipientName = match[2].trim();
 
             setVoiceMessage({ recipientName, message });
+            setSearchValue(recipientName);
             setText(recipientName);
         };
 
-        recognition.start();
+        try {
+            recognition.start();
+        } catch (e) {
+            console.log('Command SpeechRecognition start failed:', e);
+        }
     };
 
     return (
         <Component>
             <Wrapper>
-                <Icon>
-                    <SearchIcon 
-                    fontSize='small'/>
+                <Icon onClick={handleClearSearch}>
+                    {searchValue ? (
+                        <ArrowBack fontSize='small' />
+                    ) : (
+                        <SearchIcon fontSize='small' />
+                    )}
                 </Icon>
                 <InputField
                     placeholder='Search or start new chat'
-                    onChange={(e)=>setText(e.target.value)}
+                    value={searchValue}
+                    onChange={handleChange}
                 />
                 <MicIconBox onClick={handleMicClick}>
                     <MicIcon fontSize="small" />
